@@ -9,8 +9,13 @@
 <input type="submit" value="Submit">
 </form>
 <a href="/clear">clear</a>
-{% for userinput in data %}
-<p>{{userinput}}</p>
-{% endfor %}
+{% if data %}
+    {% for userinput in data %}
+        <!-- Your code for each iteration -->
+    {% endfor %}
+{% else %}
+<p>No data available</p>   
+{% endif %}
+
 </body>
 </html>
