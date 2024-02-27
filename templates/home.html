@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
   <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDnUhIrcmxYrLKj86l9LZ_HSa2HS-H8dBM&libraries=places&callback=initialize" async defer></script>
@@ -49,6 +50,8 @@
       document.getElementById('longitude').value = location.lng();
     }
   </script>
+
+
 </head>
 <body onload="initialize()">
   <h1>CrimeMap</h1>
