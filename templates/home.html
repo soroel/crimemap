@@ -6,10 +6,11 @@
   <script type="text/javascript">
     var map;
     var marker;
+    categories = ['Theft', 'Assault', 'Burglary', 'Fraud', 'Vandalism'] 
 
     function initialize() {
       var mapOptions = {
-        center: new google.maps.LatLng(-33.30578381949298, 26.523442268371582),
+        center: new google.maps.LatLng(-1.286389, 36.817223),
         zoom: 15
       };
 
@@ -18,7 +19,21 @@
       google.maps.event.addListener(map, 'click', function(event) {
         placeMarker(event.latLng);
       });
+      placeCrimes({{crimes | safe}});
     }
+
+    function placeCrimes(crimes) {
+      for (i=0; i<crimes.length; i++) {
+      crime = new google.maps.Marker( {
+      position: new google.maps.LatLng(crimes[i].latitude, crimes[i].
+      longitude),
+      map: map,
+      title: crimes[i].date + "\n" +
+      crimes[i].category + "\n" + crimes[i].description
+      }
+      );
+      }
+      }
 
     function placeMarker(location) {
       if (marker) {
@@ -37,8 +52,8 @@
 </head>
 <body onload="initialize()">
   <h1>CrimeMap</h1>
-  <p>A map of recent criminal activity in the Grahamstown area.</p>
-  <div id="map-canvas" style="height: 400px; width: 100%;"></div>
+  <p>A map of recent criminal activity in the Nairobi.</p>
+  <div id="map-canvas" style="height: 400px; width: 70%;"></div>
   <div id="newcrimeform">
     <h2>Submit new crime</h2>
     {% if error_message %}
@@ -54,9 +69,9 @@
       <label for="date">Date</label>
       <input name="date" id="date" type="date">
       <label for="latitude">Latitude</label>
-      <input name="latitude" id="latitude" type="text" readonly>
+      <input name="latitude" id="latitude" type="text">
       <label for="longitude">Longitude</label>
-      <input name="longitude" id="longitude" type="text" readonly>
+      <input name="longitude" id="longitude" type="text">
       <label for="description">Description</label>
       <textarea name="description" id="description" placeholder="A brief but detailed description of the crime"></textarea>
       <input type="submit" value="Submit">
