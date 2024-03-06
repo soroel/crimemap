@@ -33,6 +33,10 @@ def clear():
         print(e)
     return home()
 
+@app.route("/analysis")
+def analysis():
+   return render_template("analysis.html")
+
 @app.route("/submitcrime", methods=['POST'])
 def submitcrime():
   category = request.form.get("category")

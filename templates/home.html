@@ -1,8 +1,10 @@
+{% block content%}
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
   <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+   <title>{% block title%}Home{%endblock%}</title>
   <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDnUhIrcmxYrLKj86l9LZ_HSa2HS-H8dBM&libraries=places&callback=initialize" async defer></script>
   <script type="text/javascript">
     var map;
@@ -49,14 +51,68 @@
       document.getElementById('latitude').value = location.lat();
       document.getElementById('longitude').value = location.lng();
     }
+
+    // Function to get the user's location
+function getLocation() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(showPosition, showError);
+    } else { 
+        alert("Geolocation is not supported by this browser.");
+    }
+}
+
+// Function to show the position in the input field
+function showPosition(position) {
+    var latitude = position.coords.latitude;
+    var longitude = position.coords.longitude;
+    document.getElementById('location').value = "Lat: " + latitude + ", Long: " + longitude;
+}
+
+// Function to handle errors
+function showError(error) {
+    switch(error.code) {
+        case error.PERMISSION_DENIED:
+            alert("User denied the request for Geolocation.");
+            break;
+        case error.POSITION_UNAVAILABLE:
+            alert("Location information is unavailable.");
+            break;
+        case error.TIMEOUT:
+            alert("The request to get user location timed out.");
+            break;
+        case error.UNKNOWN_ERROR:
+            alert("An unknown error occurred.");
+            break;
+    }
+}
+
+// Call getLocation() when the page loads or when needed
+window.onload = getLocation; // This will prompt the user for location access when the page loads
+
   </script>
 
 
 </head>
 <body onload="initialize()">
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+      <button
+        class="navbar-toggler"
+        type="button"
+        data-toggle="collapse"
+        data-target="#navbar"
+      >
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbar">
+        <div class="navbar-nav">
+          <a class="nav-item nav-link" id="home" href="/">Home</a>
+          <a class="nav-item nav-link" id="analysis" href="/analysis">Analysis</a>
+        </div>
+      </div>
+    </nav>
   <h1>CrimeMap</h1>
   <p>A map of recent criminal activity in the Nairobi.</p>
-  <div id="map-canvas" style="height: 400px; width: 70%;"></div>
+  <div id="map-canvas" style="height: 700px; width: 70%;"></div>
   <div id="newcrimeform">
     <h2>Submit new crime</h2>
     {% if error_message %}
@@ -66,9 +122,12 @@
       <label for="category">Category</label>
       <select name="category" id="category">
         {% for category in categories %}
-        <option value="{{ category }}">{{ category }}</option>
+        <option value="{{ category.id }}">{{ category.name }}</option>
         {% endfor %}
       </select>
+      <label for ="location">Location</label>
+      <input name="location" id="location" type="text" placeholder="Enter a location">
+      <input type="button" value="Find on map" onclick="codeAddress()">
       <label for="date">Date</label>
       <input name="date" id="date" type="date">
       <label for="latitude">Latitude</label>
@@ -82,3 +141,4 @@
   </div>
 </body>
 </html>
+{%endblock%}
