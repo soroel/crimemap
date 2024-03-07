@@ -9,11 +9,11 @@
   <script type="text/javascript">
     var map;
     var marker;
-    categories = ['Theft', 'Assault', 'Burglary', 'Fraud', 'Vandalism'] 
+    
 
     function initialize() {
       var mapOptions = {
-        center: new google.maps.LatLng(-1.286389, 36.817223),
+        center: new google.maps.LatLng(-1.3894, 36.7478),
         zoom: 15
       };
 
@@ -24,6 +24,19 @@
       });
       placeCrimes({{crimes | safe}});
     }
+
+     function codeAddress() {
+            var geocoder = new google.maps.Geocoder();
+            var address = document.getElementById('location').value;
+            geocoder.geocode({ 'address': address }, function(results, status) {
+                if (status == google.maps.GeocoderStatus.OK) {
+                    map.setCenter(results[0].geometry.location);
+                    placeMarker(results[0].geometry.location);
+                } else {
+                    alert('Geocode was not successful for the following reason: ' + status);
+                }
+            });
+        }
 
     function placeCrimes(crimes) {
       for (i=0; i<crimes.length; i++) {
@@ -111,7 +124,7 @@ window.onload = getLocation; // This will prompt the user for location access wh
       </div>
     </nav>
   <h1>CrimeMap</h1>
-  <p>A map of recent criminal activity in the Nairobi.</p>
+  <p>A map of recent criminal activity in Ongata Rongai.</p>
   <div id="map-canvas" style="height: 700px; width: 70%;"></div>
   <div id="newcrimeform">
     <h2>Submit new crime</h2>
@@ -131,9 +144,9 @@ window.onload = getLocation; // This will prompt the user for location access wh
       <label for="date">Date</label>
       <input name="date" id="date" type="date">
       <label for="latitude">Latitude</label>
-      <input name="latitude" id="latitude" type="text">
+      <input name="latitude" id="latitude" type="text" readonly>
       <label for="longitude">Longitude</label>
-      <input name="longitude" id="longitude" type="text">
+      <input name="longitude" id="longitude" type="text" readonly>
       <label for="description">Description</label>
       <textarea name="description" id="description" placeholder="A brief but detailed description of the crime"></textarea>
       <input type="submit" value="Submit">
