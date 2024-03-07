@@ -8,12 +8,17 @@ else:
 
 app = Flask(__name__)
 DB = DBHelper()
-
+categories = ['Homicide', 'Offences against Morality', 
+              'Other offences against person', 'Robbery', 'Breaking', 
+              'Theft of Stock', 'Stealing', 'Theft by Servant', 
+              'Theft of Vehicle and parts', 'Dangerous Drugs', 'Traffic offences', 'Criminal damage', 
+              'Economic crimes', 'Corruption', 'Offences Involving police officers', 
+              'Offences involving tourists', 'Other penal code offences']
 @app.route("/")
 def home():
     crimes = DB.get_all_crimes()
     crimes = json.dumps(crimes)
-    return render_template("home.html", crimes=crimes)
+    return render_template("home.html", crimes=crimes, categories=categories)
 
 
 @app.route("/add", methods=["POST"])

@@ -38,6 +38,22 @@
             });
         }
 
+    function submitForm() {
+      console.log('submitting form');
+          var latitude = document.getElementById('latitude').value;
+          var longitude = document.getElementById('longitude').value;
+
+    if (!latitude || !longitude) {
+        alert("Please select a location on the map before submitting.");
+    } else {
+         var confirmation = confirm("Your data will be sent to the nearest police station for further investigation. Are you sure you want to submit?");
+        
+        if (confirmation) {
+            // Submit the form
+            document.getElementById('newcrimeform').submit();
+        }
+    }
+}
     function placeCrimes(crimes) {
       for (i=0; i<crimes.length; i++) {
       crime = new google.maps.Marker( {
@@ -65,6 +81,14 @@
       document.getElementById('longitude').value = location.lng();
     }
 
+    // Enable the submit button when the location is found
+    document.getElementById('location').addEventListener('input', function() {
+      if (document.getElementById('location').value) {
+        document.getElementById('submit-btn').disabled = false;
+      } else {
+        document.getElementById('submit-btn').disabled = true;
+      }
+    });
     // Function to get the user's location
 function getLocation() {
     if (navigator.geolocation) {
@@ -135,11 +159,11 @@ window.onload = getLocation; // This will prompt the user for location access wh
       <label for="category">Category</label>
       <select name="category" id="category">
         {% for category in categories %}
-        <option value="{{ category.id }}">{{ category.name }}</option>
+        <option value="{{ category}}">{{ category }}</option>
         {% endfor %}
       </select>
       <label for ="location">Location</label>
-      <input name="location" id="location" type="text" placeholder="Enter a location">
+      <input name="location" id="location" type="text" placeholder="Enter a location" required>
       <input type="button" value="Find on map" onclick="codeAddress()">
       <label for="date">Date</label>
       <input name="date" id="date" type="date">
@@ -149,7 +173,7 @@ window.onload = getLocation; // This will prompt the user for location access wh
       <input name="longitude" id="longitude" type="text" readonly>
       <label for="description">Description</label>
       <textarea name="description" id="description" placeholder="A brief but detailed description of the crime"></textarea>
-      <input type="submit" value="Submit">
+      <input type="submit" value="Submit" id="submit-btn" onclick="submitForm()">
     </form>
   </div>
 </body>
