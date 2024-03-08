@@ -1,4 +1,6 @@
+{% extends "base.html" %}
 {% block content%}
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -131,22 +133,6 @@ window.onload = getLocation; // This will prompt the user for location access wh
 
 </head>
 <body onload="initialize()">
-  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-      <button
-        class="navbar-toggler"
-        type="button"
-        data-toggle="collapse"
-        data-target="#navbar"
-      >
-        <span class="navbar-toggler-icon"></span>
-      </button>
-      <div class="collapse navbar-collapse" id="navbar">
-        <div class="navbar-nav">
-          <a class="nav-item nav-link" id="home" href="/">Home</a>
-          <a class="nav-item nav-link" id="analysis" href="/analysis">Analysis</a>
-        </div>
-      </div>
-    </nav>
   <h1>CrimeMap</h1>
   <p>A map of recent criminal activity in Ongata Rongai.</p>
   <div id="map-canvas" style="height: 700px; width: 70%;"></div>

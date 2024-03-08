@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Updates and Trending Crime</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Updates and Trending Crime</h1>
+        <div id="filter-section">
+            <form id="filter-form">
+                <div class="filter-group">
+                    <label for="crime-type">Crime Type:</label>
+                    <select id="crime-type" name="crime-type">
+                        <option value="all">All</option>
+                        <option value="homicide">Homicide</option>
+                        <option value="offences-against-morality">Offences against Morality</option>
+                        <option value="other-offences-against-person">Other offences against person</option>
+                        <option value="robbery">Robbery</option>
+                        <option value="breaking">Breaking</option>
+                        <option value="theft-of-stock">Theft of Stock</option>
+                        <option value="stealing">Stealing</option>
+                        <option value="theft-by-servant">Theft by Servant</option>
+                        <option value="theft-of-vehicle-parts">Theft of Vehicle and parts</option>
+                        <option value="dangerous-drugs">Dangerous Drugs</option>
+                        <option value="traffic-offences">Traffic offences</option>
+                        <option value="criminal-damage">Criminal damage</option>
+                        <option value="economic-crimes">Economic crimes</option>
+                        <option value="corruption">Corruption</option>
+                        <option value="offences-involving-police-officers">Offences Involving police officers</option>
+                        <option value="offences-involving-tourists">Offences involving tourists</option>
+                        <option value="other-penal-code-offences">Other penal code offences</option>
+                    </select>
+
+                </div>
+                <div class="filter-group">
+                    <label for="date-range">Date Range:</label>
+                    <select id="date-range" name="date-range">
+                        <option value="last-week">Last Week</option>
+                        <option value="last-month">Last Month</option>
+                        <option value="last-year">Last Year</option>
+                    </select>
+                </div>
+                <button type="button" onclick="applyFilters()">Visualize Data</button>
+            </form>
+        </div>
+        <div id="trending-crime-map">
+            <!-- Map to display trending crime data -->
+        </div>
+        <div id="trending-crime-chart">
+            <!-- Chart to display trending crime data -->
+        </div>
+        <div id="updates-table">
+            <!-- Table to display recent updates -->
+        </div>
+    </div>
+    <script>
+    function applyFilters() {
+        const crimeType = document.getElementById('crime-type').value;
+        const dateRange = document.getElementById('date-range').value;
+
+        // Assuming you have an endpoint '/api/filter-crimes' that accepts POST requests for filtered crime data
+        fetch('/api/filter-crimes', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ crimeType, dateRange }),
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Handle the filtered data
+            console.log(data);
+            // For example, update the map, chart, and table to reflect the filtered data
+        })
+        .catch(error => {
+            console.error('Error fetching filtered data:', error);
+        });
+    }
+
+                console.log('Filters applied');
+                // You might need to fetch filtered data from the server or filter it directly in the browser
+            
+    </script>
+</body>
+</html>
+{% endblock %}

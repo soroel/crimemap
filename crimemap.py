@@ -42,6 +42,17 @@ def clear():
 def analysis():
    return render_template("analysis.html")
 
+@app.route("/updates")
+def updates():
+    # Fetch data from the database (e.g., trending crime data)
+    #trending_crime_data = DB.get_trending_crime_data()
+
+    # Process the data as needed
+
+    # Render the HTML template and pass the data
+    return render_template("updates.html")
+
+
 @app.route("/submitcrime", methods=['POST'])
 def submitcrime():
   category = request.form.get("category")
