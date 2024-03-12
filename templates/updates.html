@@ -8,6 +8,8 @@
     <title>Updates and Trending Crime</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 </head>
 <body>
     <div class="container">
@@ -39,11 +41,11 @@
 
                 </div>
                 <div class="filter-group">
-                    <label for="date-range">Date Range:</label>
-                    <select id="date-range" name="date-range">
-                        <option value="last-week">Last Week</option>
-                        <option value="last-month">Last Month</option>
-                        <option value="last-year">Last Year</option>
+                    <label for="county">County:</label>
+                    <select id="county" name="county">
+                        <option value="kajiado">Kajiado</option>
+                        <option value="Nairobi">Nairobi</option>
+                        <option value="Kiambu">Kiambu</option>
                     </select>
                 </div>
                 <button type="button" onclick="applyFilters()">Visualize Data</button>
@@ -53,39 +55,62 @@
             <!-- Map to display trending crime data -->
         </div>
         <div id="trending-crime-chart">
-            <!-- Chart to display trending crime data -->
+            <canvas id="trending-chart-canvas"></canvas>
         </div>
+        
         <div id="updates-table">
             <!-- Table to display recent updates -->
         </div>
     </div>
     <script>
-    function applyFilters() {
-        const crimeType = document.getElementById('crime-type').value;
-        const dateRange = document.getElementById('date-range').value;
-
-        // Assuming you have an endpoint '/api/filter-crimes' that accepts POST requests for filtered crime data
-        fetch('/api/filter-crimes', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ crimeType, dateRange }),
-        })
-        .then(response => response.json())
-        .then(data => {
-            // Handle the filtered data
-            console.log(data);
-            // For example, update the map, chart, and table to reflect the filtered data
-        })
-        .catch(error => {
-            console.error('Error fetching filtered data:', error);
-        });
-    }
-
-                console.log('Filters applied');
-                // You might need to fetch filtered data from the server or filter it directly in the browser
+                function applyFilters() {
+                const crimeType = document.getElementById('crime-type').value;
+                const county= document.getElementById('county').value;
             
+                fetch('/api/filter-crimes', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ crimeType, county }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    // Assuming 'data' is an object with 'labels' and 'values' arrays
+                    renderChart(data.labels, data.values);
+                })
+                .catch(error => {
+                    console.error('Error fetching filtered data:', error);
+                });
+            }
+            
+            function renderChart(labels, values) {
+                const ctx = document.getElementById('trending-chart-canvas').getContext('2d');
+                if (window.crimeChart) {
+                    window.crimeChart.destroy();
+                }
+                window.crimeChart = new Chart(ctx, {
+                    type: 'bar', // Or 'line', 'pie', etc., based on your needs
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Number of Crimes',
+                            data: values,
+                            backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+                   
     </script>
 </body>
 </html>

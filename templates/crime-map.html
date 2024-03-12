@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block content%}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Crime Map</title>
+  <style>
+    #map-canvas {
+      height: 400px;
+      width: 70%;
+    }
+  </style>
+</head>
+<body>
+  <h1>Crime Map</h1>
+  <div id="map-canvas"></div>
+
+  <script>
+    function initMap() {
+      var map = new google.maps.Map(document.getElementById('map-canvas'), {
+        center: { lat: -1.3894 , lng: 36.7478 }, // Nairobi, Kenya
+        zoom: 10
+      });
+
+      var crimes = {{ crimes | tojson }}; // Pass crime data from Flask
+
+      crimes.forEach(function(crime) {
+        var marker = new google.maps.Marker({
+          position: { lat: parseFloat(crime.latitude), lng: parseFloat(crime.longitude) },
+          map: map,
+          title: crime.category
+        });
+
+        var infowindow = new google.maps.InfoWindow({
+          content: '<strong>' + crime.category + '</strong><br>' + crime.description
+        });
+
+        marker.addListener('click', function() {
+          infowindow.open(map, marker);
+        });
+      });
+    }
+  </script>
+
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDnUhIrcmxYrLKj86l9LZ_HSa2HS-H8dBM&libraries=places&callback=initialize&callback=initMap" async defer></script>
+</body>
+</html>
+{%endblock%}

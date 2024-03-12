@@ -1,6 +1,8 @@
-from flask import Flask, render_template, request
+from flask import Flask, jsonify, render_template, request
 import dbconfig
 import json
+import pandas as pd
+
 if dbconfig.test:
   from mockdbhelper import MockDBHelper as DBHelper
 else:
@@ -14,6 +16,9 @@ categories = ['Homicide', 'Offences against Morality',
               'Theft of Vehicle and parts', 'Dangerous Drugs', 'Traffic offences', 'Criminal damage', 
               'Economic crimes', 'Corruption', 'Offences Involving police officers', 
               'Offences involving tourists', 'Other penal code offences']
+
+data = pd.read_csv('hello_ds/crimedata-clean.csv')
+
 @app.route("/")
 def home():
     crimes = DB.get_all_crimes()
@@ -38,18 +43,43 @@ def clear():
         print(e)
     return home()
 
-@app.route("/analysis")
-def analysis():
-   return render_template("analysis.html")
+@app.route('/crime_map')
+def crime_map():
+    # Fetch crime data from the database
+    crimes = DB.get_all_crimes()
+    return render_template('crime-map.html', crimes=crimes)
+
+@app.route("/get-cleaned-data")
+def get_cleaned_data():
+    # Convert the cleaned data to JSON format
+    cleaned_data_json = data.to_dict(orient='records')
+    return jsonify(cleaned_data_json)
+
+@app.route('/api/filter-crimes', methods=['POST'])
+def filter_crimes():
+    # Get the selected county from the POST request
+    county = request.json.get('county')
+
+    # Filter the data based on the selected county
+    try:
+        filtered_data = data[data['Counties'] == county]
+    except KeyError as e:
+        return jsonify({"error": "Invalid column names for filtering"}), 400
+
+    # Prepare the data for visualization (e.g., sum up crime counts for each category)
+    chart_data = filtered_data.drop(columns=['Counties', 'Total', 'COUNTIES VS CATEGORY']).sum()
+    labels = chart_data.index.tolist()
+    values = chart_data.values.tolist()
+
+    print(filtered_data)
+
+    # Return the filtered data in JSON format
+    return jsonify(labels=labels, values=values)
+
+
 
 @app.route("/updates")
 def updates():
-    # Fetch data from the database (e.g., trending crime data)
-    #trending_crime_data = DB.get_trending_crime_data()
-
-    # Process the data as needed
-
-    # Render the HTML template and pass the data
     return render_template("updates.html")
 
 
