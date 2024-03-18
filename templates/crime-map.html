@@ -3,15 +3,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+   <title>{% block title%}Visualize{%endblock%}</title>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Crime Map</title>
-  <style>
-    #map-canvas {
-      height: 400px;
-      width: 70%;
-    }
-  </style>
+ 
 </head>
 <body>
   <h1>Crime Map</h1>
@@ -20,7 +17,7 @@
   <script>
     function initMap() {
       var map = new google.maps.Map(document.getElementById('map-canvas'), {
-        center: { lat: -1.3894 , lng: 36.7478 }, // Nairobi, Kenya
+        center: { lat: -1.3894, lng: 36.7478 }, // Nairobi, Kenya
         zoom: 10
       });
 
@@ -47,4 +44,5 @@
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDnUhIrcmxYrLKj86l9LZ_HSa2HS-H8dBM&libraries=places&callback=initialize&callback=initMap" async defer></script>
 </body>
 </html>
+
 {%endblock%}
