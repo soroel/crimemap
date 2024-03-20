@@ -2,6 +2,7 @@ from flask import Flask, jsonify, render_template, request
 import dbconfig
 import json
 import pandas as pd
+import os
 
 if dbconfig.test:
   from mockdbhelper import MockDBHelper as DBHelper
@@ -16,6 +17,8 @@ categories = ['Homicide', 'Offences against Morality',
               'Theft of Vehicle and parts', 'Dangerous Drugs', 'Traffic offences', 'Criminal damage', 
               'Economic crimes', 'Corruption', 'Offences Involving police officers', 
               'Offences involving tourists', 'Other penal code offences']
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+data_file_path = os.path.join(BASE_DIR, 'hello_ds', 'crimedata-clean.csv')
 
 data = pd.read_csv('hello_ds/crimedata-clean.csv')
 
