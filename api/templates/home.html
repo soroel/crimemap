@@ -21,10 +21,18 @@
 
       map = new google.maps.Map(document.getElementById("map-canvas"), mapOptions);
 
+      // Clear existing markers
+      clearMarkers();
+
       google.maps.event.addListener(map, 'click', function(event) {
         placeMarker(event.latLng);
       });
       placeCrimes({{crimes | safe}});
+    }
+    function clearMarkers() {
+      if (marker) {
+        marker.setMap(null);
+      }
     }
 
      function codeAddress() {
@@ -34,6 +42,10 @@
                 if (status == google.maps.GeocoderStatus.OK) {
                     map.setCenter(results[0].geometry.location);
                     placeMarker(results[0].geometry.location);
+
+                     // Fill the location input field with the formatted address
+            var formattedAddress = results[0].formatted_address;
+            document.getElementById('location').value = formattedAddress;
                 } else {
                     alert('Geocode was not successful for the following reason: ' + status);
                 }
@@ -78,6 +90,17 @@
           map: map
         });
       }
+      // Reverse geocode the coordinates to get the formatted address
+    var geocoder = new google.maps.Geocoder();
+    geocoder.geocode({ 'location': location }, function(results, status) {
+        if (status === google.maps.GeocoderStatus.OK) {
+            if (results[0]) {
+                document.getElementById('location').value = results[0].formatted_address;
+            }
+        } else {
+            console.log('Geocoder failed due to: ' + status);
+        }
+    });
 
       document.getElementById('latitude').value = location.lat();
       document.getElementById('longitude').value = location.lng();
@@ -135,7 +158,7 @@ window.onload = getLocation; // This will prompt the user for location access wh
 <body onload="initialize()">
   <h1>CrimeMap</h1>
   <p>A map of recent criminal activity in Ongata Rongai.</p>
-  <div id="map-canvas" style="height: 700px; width: 70%;"></div>
+  <div id="map-canvas" style="height: 600px; width: 70%;"></div>
   <div id="newcrimeform">
     <h2>Submit new crime</h2>
     {% if error_message %}
@@ -153,14 +176,20 @@ window.onload = getLocation; // This will prompt the user for location access wh
       <input type="button" value="Find on map" onclick="codeAddress()">
       <label for="date">Date</label>
       <input name="date" id="date" type="date">
-      <label for="latitude">Latitude</label>
+      <label for="latitude">Latitude[click on map]</label>
       <input name="latitude" id="latitude" type="text" readonly>
-      <label for="longitude">Longitude</label>
+      <label for="longitude">Longitude[click on map]</label>
       <input name="longitude" id="longitude" type="text" readonly>
       <label for="description">Description</label>
       <textarea name="description" id="description" placeholder="A brief but detailed description of the crime"></textarea>
       <input type="submit" value="Submit" id="submit-btn" onclick="submitForm()">
     </form>
+  </div>
+  <br>
+  <br>
+
+  <div class="blinking">
+    <a href="tel:0800720002" style="color: inherit; text-decoration: none;">Emergency Number : 0800720002</a>
   </div>
 </body>
 </html>

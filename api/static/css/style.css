@@ -57,4 +57,30 @@ table th {
     text-align: left;
     font-weight: bold;
 }
+#trending-crime-chart {
+    width: 100%; /* Container width */
+    max-width: 900px; /* Max width for larger screens */
+    margin: 20px auto; /* Centering the chart */
+    padding: 15px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* Simple shadow for emphasis */
+    background-color: #0c0b0b; 
+}
 
+#trending-chart-canvas {
+    height: 400px !important; /* Setting a fixed height */
+    width: 100% !important; /* Responsive width */
+}
+@keyframes blink {
+    0% { opacity: 1; }
+    50% { opacity: 0; }
+    100% { opacity: 1; }
+  }
+  
+  .blinking {
+    text-align: center;
+    animation: blinker 1.5s linear infinite;
+    margin-top: 20px;
+    font-size: 20px;
+    color: #FF0000;
+  }
+  

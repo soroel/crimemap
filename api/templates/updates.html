@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Updates and Trending Crime</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <section class="container">
+        <h1>View Trends</h1>
+        <section id="filter-section">
+            <form id="filter-form">
+                <fieldset>
+                    <legend>Filter Options</legend>
+                    <div class="filter-group">
+                        <label for="crime-type">Crime Type:</label>
+                        <select id="crime-type" name="crime-type" required>
+                            <option value="all">All</option>
+                        <!--<option value="homicide">Homicide</option>
+                        <option value="offences-against-morality">Offences against Morality</option>
+                        <option value="other-offences-against-person">Other offences against person</option>
+                        <option value="robbery">Robbery</option>
+                        <option value="breaking">Breaking</option>
+                        <option value="theft-of-stock">Theft of Stock</option>
+                        <option value="stealing">Stealing</option>
+                        <option value="theft-by-servant">Theft by Servant</option>
+                        <option value="theft-of-vehicle-parts">Theft of Vehicle and parts</option>
+                        <option value="dangerous-drugs">Dangerous Drugs</option>
+                        <option value="traffic-offences">Traffic offences</option>
+                        <option value="criminal-damage">Criminal damage</option>
+                        <option value="economic-crimes">Economic crimes</option>
+                        <option value="corruption">Corruption</option>
+                        <option value="offences-involving-police-officers">Offences Involving police officers</option>
+                        <option value="offences-involving-tourists">Offences involving tourists</option>
+                        <option value="other-penal-code-offences">Other penal code offences</option>-->
+
+                           
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="county">County:</label>
+                        <select id="county" name="county" required>
+                            
+                            <option value="Nairobi">Nairobi</option>
+                            <option value="Kiambu">Kiambu</option>
+                        </select>
+                    </div>
+                    <button type="submit" onclick="applyFilters(event)">Visualize Data</button>
+                </fieldset>
+            </form>
+        </section>
+        
+        <div id="trending-crime-chart">
+            <canvas id="trending-chart-canvas"></canvas>
+        </div>
+       
+    </section>
+    <script>
+        function applyFilters(event) {
+            event.preventDefault(); // Prevent form from submitting traditionally
+            const crimeType = document.getElementById('crime-type').value;
+            const county = document.getElementById('county').value;
+
+            fetch('/api/filter-crimes', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ crimeType, county }),
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Assuming 'data' is an object with 'labels' and 'values' arrays
+                renderChart(data.labels, data.values);
+            })
+            .catch(error => {
+                console.error('Error fetching filtered data:', error);
+                alert("Failed to fetch data. Please try again later.");
+            });
+        }
+
+        function renderChart(labels, values) {
+            const ctx = document.getElementById('trending-chart-canvas').getContext('2d');
+            if (window.crimeChart) {
+                window.crimeChart.destroy();
+            }
+            window.crimeChart = new Chart(ctx, {
+                type: 'bar', // Or 'line', 'pie', etc.,
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Number of Crimes',
+                        data: values,
+                        backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
+{% endblock %}

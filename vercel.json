@@ -1,0 +1,14 @@
+  {
+    "builds": [
+        {
+            "src": "api/crimemap.py",
+            "use": "@vercel/python"
+        }
+    ],
+    "routes": [
+        {
+            "src": "/(.*)",
+            "dest": "api/crimemap.py"
+        }
+    ]
+}

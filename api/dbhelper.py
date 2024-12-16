@@ -34,7 +34,7 @@ class DBHelper:
                 'category': crime[3],
                 'description': crime[4]
                 }
-            named_crimes.append(named_crime)
+                named_crimes.append(named_crime)
             return named_crimes
         finally:
             connection.close()
