@@ -1,121 +1,255 @@
 {% extends "base.html" %}
-{% block content %}
-<!DOCTYPE html>
-<html lang="en">
+{% block content%}
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Updates and Trending Crime</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    
+   
+    <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        /* Dark Theme Variables */
+        :root {
+            --background-color: #121212;
+            --card-color: rgba(30, 30, 30, 0.9);
+            --primary-color: #0d6efd;
+            --text-color: #ffffff;
+            --border-radius: 10px;
+            --shadow-color: rgba(16, 16, 16, 0.5);
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            font-size: 28px;
+            text-shadow: 0px 0px 8px var(--shadow-color);
+        }
+
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 30px;
+            max-width: 1200px;
+            margin: auto;
+            padding: 20px;
+        }
+
+        .card {
+            background: var(--card-color);
+            padding: 25px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 15px var(--shadow-color);
+            backdrop-filter: blur(10px);
+            flex: 1;
+            min-width: 350px;
+        }
+
+        .form-container {
+            max-width: 400px;
+            flex: 1;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        select, button {
+            padding: 12px;
+            font-size: 16px;
+            border-radius: var(--border-radius);
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        select {
+            background: #262626;
+            color: var(--text-color);
+            border: 1px solid #444;
+        }
+
+        button {
+            background: var(--primary-color);
+            color: white;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0px 4px 12px var(--shadow-color);
+        }
+
+        button:hover {
+            background: #0056b3;
+            transform: scale(1.05);
+        }
+
+        #loading, #no-data {
+            display: none;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+
+        .chart-container {
+            flex: 2;
+            max-width: 700px;
+            padding: 20px;
+            background: var(--card-color);
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 8px var(--shadow-color);
+            backdrop-filter: blur(10px);
+        }
+
+        canvas {
+            width: 100% !important;
+            height: 400px !important;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
 </head>
 <body>
-    <section class="container">
-        <h1>View Trends</h1>
-        <section id="filter-section">
-            <form id="filter-form">
-                <fieldset>
-                    <legend>Filter Options</legend>
-                    <div class="filter-group">
-                        <label for="crime-type">Crime Type:</label>
-                        <select id="crime-type" name="crime-type" required>
-                            <option value="all">All</option>
-                        <!--<option value="homicide">Homicide</option>
-                        <option value="offences-against-morality">Offences against Morality</option>
-                        <option value="other-offences-against-person">Other offences against person</option>
-                        <option value="robbery">Robbery</option>
-                        <option value="breaking">Breaking</option>
-                        <option value="theft-of-stock">Theft of Stock</option>
-                        <option value="stealing">Stealing</option>
-                        <option value="theft-by-servant">Theft by Servant</option>
-                        <option value="theft-of-vehicle-parts">Theft of Vehicle and parts</option>
-                        <option value="dangerous-drugs">Dangerous Drugs</option>
-                        <option value="traffic-offences">Traffic offences</option>
-                        <option value="criminal-damage">Criminal damage</option>
-                        <option value="economic-crimes">Economic crimes</option>
-                        <option value="corruption">Corruption</option>
-                        <option value="offences-involving-police-officers">Offences Involving police officers</option>
-                        <option value="offences-involving-tourists">Offences involving tourists</option>
-                        <option value="other-penal-code-offences">Other penal code offences</option>-->
 
-                           
-                        </select>
-                    </div>
-                    <div class="filter-group">
-                        <label for="county">County:</label>
-                        <select id="county" name="county" required>
-                            
-                            <option value="Nairobi">Nairobi</option>
-                            <option value="Kiambu">Kiambu</option>
-                        </select>
-                    </div>
-                    <button type="submit" onclick="applyFilters(event)">Visualize Data</button>
-                </fieldset>
+    <h1></h1>
+
+    <div class="container">
+        <!-- Filter Form Section -->
+        <div class="card form-container">
+            <h3>Filter Crimes</h3>
+            <form id="filter-form">
+                <label for="crime-type">Crime Type:</label>
+                <select id="crime-type" name="crimeType">
+                    <option value="">Select Crime Type</option>
+                    <option value="theft">Theft</option>
+                    <option value="assault">Assault</option>
+                </select>
+
+                <label for="county">County:</label>
+                <select id="county" name="county">
+                    <option value="">Select County</option>
+                    <option value="nairobi">Nairobi</option>
+                    <option value="mombasa">Mombasa</option>
+                </select>
+
+                <button id="filter-button" type="submit">Apply Filters</button>
             </form>
-        </section>
-        
-        <div id="trending-crime-chart">
+            <span id="loading">Loading...</span>
+            <span id="no-data">No data found.</span>
+        </div>
+
+        <!-- Chart Section -->
+        <div class="chart-container">
+            <h3>Trending Crime Reports</h3>
             <canvas id="trending-chart-canvas"></canvas>
         </div>
-       
-    </section>
+    </div>
+
     <script>
-        function applyFilters(event) {
-            event.preventDefault(); // Prevent form from submitting traditionally
-            const crimeType = document.getElementById('crime-type').value;
-            const county = document.getElementById('county').value;
+        document.addEventListener('DOMContentLoaded', function () {
+            const filterForm = document.getElementById('filter-form');
 
-            fetch('/api/filter-crimes', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ crimeType, county }),
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                return response.json();
-            })
-            .then(data => {
-                // Assuming 'data' is an object with 'labels' and 'values' arrays
-                renderChart(data.labels, data.values);
-            })
-            .catch(error => {
-                console.error('Error fetching filtered data:', error);
-                alert("Failed to fetch data. Please try again later.");
-            });
-        }
-
-        function renderChart(labels, values) {
-            const ctx = document.getElementById('trending-chart-canvas').getContext('2d');
-            if (window.crimeChart) {
-                window.crimeChart.destroy();
+            if (!filterForm) {
+                console.error("Error: #filter-form not found in the DOM.");
+                return;
             }
-            window.crimeChart = new Chart(ctx, {
-                type: 'bar', // Or 'line', 'pie', etc.,
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Number of Crimes',
-                        data: values,
-                        backgroundColor: 'rgba(54, 162, 235, 0.5)',
-                        borderColor: 'rgba(54, 162, 235, 1)',
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    scales: {
-                        y: {
-                            beginAtZero: true
+
+            filterForm.addEventListener('submit', applyFilters);
+
+            function applyFilters(event) {
+                event.preventDefault();
+                const button = document.getElementById('filter-button');
+                const loading = document.getElementById('loading');
+                const noData = document.getElementById('no-data');
+
+                button.disabled = true;
+                button.style.opacity = "0.7";
+                loading.style.display = "inline";
+
+                const crimeType = document.getElementById('crime-type').value;
+                const county = document.getElementById('county').value;
+
+                fetch('/api/filter-crimes', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ crimeType, county }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    button.disabled = false;
+                    button.style.opacity = "1";
+                    loading.style.display = "none";
+
+                    if (!data.labels || data.labels.length === 0) {
+                        noData.style.display = "block";
+                        return;
+                    }
+
+                    noData.style.display = "none";
+                    renderChart(data.labels, data.values);
+                })
+                .catch(error => {
+                    console.error('Error fetching data:', error);
+                    alert("Failed to fetch data. Please try again later.");
+                    button.disabled = false;
+                    button.style.opacity = "1";
+                    loading.style.display = "none";
+                });
+            }
+
+            function renderChart(labels, values) {
+                if (typeof Chart === "undefined") {
+                    console.error("Chart.js is not loaded.");
+                    return;
+                }
+
+                const ctx = document.getElementById('trending-chart-canvas').getContext('2d');
+
+                if (window.crimeChart instanceof Chart) {
+                    window.crimeChart.destroy();
+                }
+
+                const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+                gradient.addColorStop(0, 'rgba(13, 110, 253, 0.8)');
+                gradient.addColorStop(1, 'rgba(13, 110, 253, 0.2)');
+
+                window.crimeChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Number of Crimes',
+                            data: values,
+                            backgroundColor: gradient,
+                            borderColor: 'rgba(13, 110, 253, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: { beginAtZero: true }
                         }
                     }
-                }
-            });
-        }
+                });
+            }
+        });
     </script>
+
 </body>
 </html>
-{% endblock %}
+{%endblock%}

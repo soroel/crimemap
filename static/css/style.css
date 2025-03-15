@@ -1,86 +1,160 @@
+/* General styles */
 body {
-font-family: sans-serif;
-background: #909693b0;
+  font-family: "Poppins", sans-serif;
+  background: #121212; /* Dark background */
+  color: #e0e0e0; /* Light text for contrast */
+  margin: 0;
+  padding-top: 70px; /* Prevents content from being hidden under navbar */
 }
-input, select, textarea {
-display: block;
-color: grey;
-border: 1px solid lightsteelblue;
-line-height: 15px;
-margin: 2px 6px 16px 0px;
-width: 100%;
+
+* {
+  box-sizing: border-box;
 }
-input[type="submit"] {
-padding: 5px 10px 5px 10px;
-color: black;
-background: lightsteelblue;
-border: none;
-box-shadow: 1px 1px 1px #4C6E91;
+
+/* Sticky Navbar */
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  background: #181818;
+  padding: 15px 20px;
+  z-index: 1000;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.5);
 }
-input[type="submit"]:hover {
-background: steelblue;
+
+.navbar a {
+  color: #e0e0e0;
+  text-decoration: none;
+  margin: 0 15px;
+  font-weight: bold;
+  transition: color 0.3s ease-in-out;
 }
+
+.navbar a:hover {
+  color: #4a90e2;
+}
+
+/* Form elements */
+input,
+select,
+textarea {
+  display: block;
+  background: #1e1e1e;
+  color: #e0e0e0;
+  border: 1px solid #4a90e2;
+  padding: 10px;
+  width: 100%;
+  margin-bottom: 16px;
+  border-radius: 8px; /* Slightly increased */
+  transition: all 0.3s ease-in-out;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: #6ec1e4;
+  outline: none;
+  background: #252525;
+}
+
+input[type="submit"],
+button {
+  padding: 12px;
+  font-size: 16px;
+  font-weight: bold;
+  background: #4a90e2;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #fff;
+  transition: background 0.3s ease-in-out;
+}
+
+input[type="submit"]:hover,
+button:hover {
+  background: #357abd;
+}
+
+/* Map and form layout */
 #map-canvas {
-width: 70%;
-height: 500px;
-float:left;
+  width: 70%;
+  height: 500px;
+  float: left;
 }
+
 #newcrimeform {
-float: right;
-width: 25%;
+  float: right;
+  width: 28%;
+  background: #1a1a1a;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
 }
+
+/* Responsive layout */
+@media (max-width: 768px) {
+  #map-canvas,
+  #newcrimeform {
+    width: 100%;
+    float: none;
+  }
+}
+
 /* Chart styles */
 #trending-crime-chart {
-    margin-bottom: 40px;
+  width: 100%;
+  max-width: 900px;
+  margin: 20px auto;
+  padding: 15px;
+  background: #1e1e1e;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+#trending-chart-canvas {
+  max-height: 400px;
+  width: 100%;
 }
 
 /* Table styles */
 #updates-table {
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    padding: 20px;
+  background: #1e1e1e;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 table {
-    width: 100%;
-    border-collapse: collapse;
+  width: 100%;
+  border-collapse: collapse;
 }
 
-table th, table td {
-    padding: 10px;
-    border-bottom: 1px solid #ddd;
+table th,
+table td {
+  padding: 12px;
+  border-bottom: 1px solid #4a4a4a;
 }
 
 table th {
-    background-color: #f2f2f2;
-    text-align: left;
-    font-weight: bold;
-}
-#trending-crime-chart {
-    width: 100%; /* Container width */
-    max-width: 900px; /* Max width for larger screens */
-    margin: 20px auto; /* Centering the chart */
-    padding: 15px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* Simple shadow for emphasis */
-    background-color: #0c0b0b; 
+  background: #2a2a2a;
+  font-weight: bold;
 }
 
-#trending-chart-canvas {
-    height: 400px !important; /* Setting a fixed height */
-    width: 100% !important; /* Responsive width */
+/* Blinking text */
+@keyframes blinker {
+  50% {
+    opacity: 0;
+  }
 }
-@keyframes blink {
-    0% { opacity: 1; }
-    50% { opacity: 0; }
-    100% { opacity: 1; }
-  }
-  
-  .blinking {
-    text-align: center;
-    animation: blinker 1.5s linear infinite;
-    margin-top: 20px;
-    font-size: 20px;
-    color: #FF0000;
-  }
-  
+
+.blinking {
+  text-align: center;
+  animation: blinker 1.5s linear infinite;
+  margin-top: 20px;
+  font-size: 20px;
+  color: #ff4c4c;
+}
