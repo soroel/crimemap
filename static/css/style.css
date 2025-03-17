@@ -158,3 +158,13 @@ table th {
   font-size: 20px;
   color: #ff4c4c;
 }
+.heatmap-container {
+  max-width: 800px;
+  width: 100%;
+  margin: 20px auto;
+  padding: 20px;
+  background: var(--card-color);
+  border-radius: var(--border-radius);
+  box-shadow: 0 4px 8px var(--shadow-color);
+  backdrop-filter: blur(10px);
+}
