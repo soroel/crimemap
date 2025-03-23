@@ -1,72 +1,130 @@
 import pymysql
 import dbconfig
-import datetime
+
 
 class DBHelper:
-    def connect(self, database="crimemap"):
-        return pymysql.connect(host='localhost',
-                               user=dbconfig.db_user,
-                               passwd=dbconfig.db_password,
-                               db=database)
+    def __init__(self, database="crimemap"):
+        self.database = database
+
+    def connect(self):
+        """Connects to the MySQL database."""
+        return pymysql.connect(
+            host="localhost",
+            user=dbconfig.db_user,
+            passwd=dbconfig.db_password,
+            db=self.database,
+            autocommit=True,  # Enable autocommit
+            cursorclass=pymysql.cursors.DictCursor,  # Return results as dictionaries
+        )
+
+    def create_user(self, username, hashed_password, role="user"):
+        """Creates a new user."""
+        try:
+            with self.connect() as connection:
+                with connection.cursor() as cursor:
+                    query = "INSERT INTO users (username, password, role) VALUES (%s, %s, %s)"
+                    cursor.execute(query, (username, hashed_password, role))
+                return True
+        except pymysql.IntegrityError:
+            return False  # Username already exists
+        except pymysql.MySQLError as e:
+            print(f"🔥 DB Error: {e}")
+            return False
+
+    def get_user(self, username):
+        """Fetch user details by username."""
+        try:
+            with self.connect() as connection:
+                with connection.cursor() as cursor:
+                    query = "SELECT username, password, role FROM users WHERE username = %s;"
+                    cursor.execute(query, (username,))
+                    return cursor.fetchone()  # Returns None if user doesn't exist
+        except pymysql.MySQLError as e:
+            print(f"🔥 DB Error: {e}")
+            return None
 
     def get_all_inputs(self):
-        connection = self.connect()
+        """Fetch all crime descriptions."""
         try:
-            query = "SELECT description FROM crimes;"
-            with connection.cursor() as cursor:
-                cursor.execute(query)
-                return cursor.fetchall()
-        finally:
-            connection.close()
+            with self.connect() as connection:
+                with connection.cursor() as cursor:
+                    query = "SELECT description FROM crimes;"
+                    cursor.execute(query)
+                    return [row["description"] for row in cursor.fetchall()]
+        except pymysql.MySQLError as e:
+            print(f"🔥 DB Error: {e}")
+            return []
+
+    def get_latest_crimes(self, limit=10):
+        """Fetch the latest crime reports."""
+        try:
+            with self.connect() as connection:
+                with connection.cursor() as cursor:
+                    query = """
+                        SELECT category, latitude, longitude, date, description 
+                        FROM crimes 
+                        ORDER BY date DESC 
+                        LIMIT %s;
+                    """
+                    cursor.execute(query, (limit,))
+                    return cursor.fetchall()  # List of dicts
+        except pymysql.MySQLError as e:
+            print(f"🔥 DB Error: {e}")
+            return []
 
     def get_all_crimes(self):
-        connection = self.connect()
+        """Fetch all crime reports."""
         try:
-            query = "SELECT latitude, longitude, date, category, description FROM crimes;"
-            with connection.cursor() as cursor:
-                cursor.execute(query)
-            named_crimes = []
-            for crime in cursor:
-                named_crime = {
-                'latitude': crime[0],
-                'longitude': crime[1],
-                'date': datetime.datetime.strftime(crime[2], '%Y-%m-%d'),
-                'category': crime[3],
-                'description': crime[4]
-                }
-                named_crimes.append(named_crime)
-            return named_crimes
-        finally:
-            connection.close()
+            with self.connect() as connection:
+                with connection.cursor() as cursor:
+                    query = "SELECT latitude, longitude, date, category, description FROM crimes;"
+                    cursor.execute(query)
+                    crimes = cursor.fetchall()
 
-    def add_input(self, data):
-        connection = self.connect()
+                return [
+                    {
+                        "latitude": crime["latitude"],
+                        "longitude": crime["longitude"],
+                        "date": crime["date"].strftime("%Y-%m-%d"),
+                        "category": crime["category"],
+                        "description": crime["description"],
+                    }
+                    for crime in crimes
+                ]
+        except pymysql.MySQLError as e:
+            print(f"🔥 DB Error: {e}")
+            return []
+
+    def add_crime(
+        self, category, date, latitude, longitude, description, username="Anonymous"
+    ):
+        """Insert a new crime report with username."""
         try:
-            query = "INSERT INTO crimes (description) VALUES (%s);"
-            with connection.cursor() as cursor:
-                cursor.execute(query, data)
-                connection.commit()
-        finally:
-            connection.close()
+            with self.connect() as connection:
+                with connection.cursor() as cursor:
+                    query = """
+                        INSERT INTO crimes (category, date, latitude, longitude, description, username) 
+                        VALUES (%s, %s, %s, %s, %s, %s)
+                    """
+                    cursor.execute(
+                        query,
+                        (category, date, latitude, longitude, description, username),
+                    )
+                connection.commit()  # Ensure data is committed
+            return True
+        except pymysql.MySQLError as e:
+            print(f"🔥 Database Error: {e}")
+            return False
 
     def clear_all(self):
-        connection = self.connect()
+        """Delete all crime records."""
         try:
-            query = "DELETE FROM crimes;"
-            with connection.cursor() as cursor:
-                cursor.execute(query)
-            connection.commit()
-        finally:
-            connection.close()
-
-    def add_crime(self, category, date, latitude, longitude, description):
-        connection = self.connect()
-        try:
-            query = "INSERT INTO crimes (category, date, latitude, longitude, description) VALUES (%s, %s, %s, %s, %s)"
-            with connection.cursor() as cursor:
-                cursor.execute(query, (category, date, latitude, longitude, description))
-                connection.commit()
-        except Exception as e:
-            print(e)
-        finally:
-            connection.close()
+            with self.connect() as connection:
+                with connection.cursor() as cursor:
+                    query = "DELETE FROM crimes;"
+                    cursor.execute(query)
+                connection.commit()  # Ensure deletion is saved
+            return True
+        except pymysql.MySQLError as e:
+            print(f"🔥 DB Error: {e}")
+            return False

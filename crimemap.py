@@ -1,9 +1,15 @@
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, jsonify, request
 import dbconfig
-import json
-import pandas as pd
 import os
 from flask_cors import CORS
+from flask_jwt_extended import (
+    JWTManager,
+    create_access_token,
+    jwt_required,
+    get_jwt_identity,
+    get_jwt,
+)
+import bcrypt
 
 # Use appropriate database helper
 if dbconfig.test:
@@ -12,119 +18,200 @@ else:
     from dbhelper import DBHelper
 
 app = Flask(__name__)
-CORS(app, resources={r"/api/*": {"origins": "http://localhost:3000"}})  # Restrict CORS
+CORS(
+    app,
+    resources={r"/api/*": {"origins": "http://localhost:3000"}},
+    supports_credentials=True,
+    allow_headers=["Content-Type", "Authorization"],
+    methods=["GET", "POST", "PUT", "DELETE"],
+)
 DB = DBHelper()
 
-# Categories of crimes
-categories = [
-    "Homicide",
-    "Offences against Morality",
-    "Other offences against person",
-    "Robbery",
-    "Breaking",
-    "Theft of Stock",
-    "Stealing",
-    "Theft by Servant",
-    "Theft of Vehicle and parts",
-    "Dangerous Drugs",
-    "Traffic offences",
-    "Criminal damage",
-    "Economic crimes",
-    "Corruption",
-    "Offences Involving police officers",
-    "Offences involving tourists",
-    "Other penal code offences",
-]
-
-# Load dataset
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-data_file_path = os.path.join(BASE_DIR, "hello_ds", "crimedata-clean.csv")
-
-try:
-    data = pd.read_csv(data_file_path)
-    data["Counties"] = data["Counties"].str.strip().str.lower()  # Normalize case
-    data.dropna(subset=["Counties"], inplace=True)
-    print("✅ Data loaded successfully.")
-except Exception as e:
-    print(f"❌ Error loading data: {e}")
-    data = pd.DataFrame()
+# Secret key for JWT
+app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY", "jwt-secret")
+jwt = JWTManager(app)
 
 
-@app.route("/")
-def home():
-    crimes = DB.get_all_crimes()
-    return render_template(
-        "home.html", crimes=json.dumps(crimes), categories=categories
-    )
+@app.before_request
+def ensure_json():
+    """Ensure all POST/PUT requests have a valid JSON body."""
+    if request.method in ["POST", "PUT"] and not request.is_json:
+        return jsonify({"error": "Invalid JSON format"}), 400
 
 
-@app.route("/api/filter-crimes", methods=["POST"])
-def filter_crimes():
-    request_data = request.json
-    county = request_data.get("county", "").strip().lower()
-
-    if not county:
-        return jsonify({"error": "Missing 'county' parameter"}), 400
-
-    filtered_data = data[data["Counties"] == county]
-
-    if filtered_data.empty:
-        return jsonify({"error": f"No data found for county '{county}'"}), 404
-
+# ✅ User Registration
+@app.route("/api/register", methods=["POST"])
+def register():
     try:
-        chart_data = filtered_data.drop(
-            columns=["Counties", "Total", "COUNTIES VS CATEGORY"], errors="ignore"
-        ).sum()
+        data = request.json
+        username = data.get("username")
+        password = data.get("password")
+        role = data.get("role", "user")  # Default role is "user"
 
-        labels, values = chart_data.index.tolist(), chart_data.values.tolist()
+        if not username or not password:
+            return jsonify({"error": "Username and password required"}), 400
 
-        return jsonify(labels=labels, values=values)
+        hashed_pw = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode(
+            "utf-8"
+        )
+
+        if not hasattr(DB, "create_user"):
+            return jsonify({"error": "DBHelper missing `create_user` method"}), 500
+
+        if DB.create_user(username, hashed_pw, role):
+            return jsonify({"success": "User registered successfully"}), 201
+        else:
+            return jsonify({"error": "Username already exists"}), 400
+
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": "Internal Server Error", "details": str(e)}), 500
 
 
-@app.route("/api/heatmap-data")
-def get_heatmap_data():
-    return jsonify(
-        [
-            {"latitude": -1.286389, "longitude": 36.817223, "intensity": 5},  # Nairobi
-            {"latitude": -0.425, "longitude": 36.9476, "intensity": 3},  # Nakuru
-            {"latitude": -4.0435, "longitude": 39.6682, "intensity": 2},  # Mombasa
-            {"latitude": -0.1022, "longitude": 34.7617, "intensity": 4},  # Kisumu
-            {"latitude": 0.5167, "longitude": 35.2833, "intensity": 1},  # Eldoret
-        ]
-    )
+# ✅ User Login (Fixed JWT Token)
+@app.route("/api/login", methods=["POST"])
+def login():
+    try:
+        data = request.json
+        username = data.get("username")
+        password = data.get("password")
+
+        if not username or not password:
+            return jsonify({"error": "Username and password required"}), 400
+
+        user = DB.get_user(username)
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+
+        stored_password = user["password"]
+        if not isinstance(stored_password, str):
+            return jsonify({"error": "Invalid password format"}), 500
+
+        if not bcrypt.checkpw(
+            password.encode("utf-8"), stored_password.encode("utf-8")
+        ):
+            return jsonify({"error": "Invalid credentials"}), 401
+
+        # ✅ Fix: Store only username in `identity`, move `role` to `additional_claims`
+        role = user.get("role", "user")  # Ensure role exists
+        access_token = create_access_token(
+            identity=username, additional_claims={"role": role}
+        )
+
+        return jsonify({"token": access_token, "role": role}), 200
+
+    except Exception as e:
+        return jsonify({"error": "Internal Server Error", "details": str(e)}), 500
 
 
+# ✅ Submit Crime Report (Fixed JWT Handling)
 @app.route("/api/submitcrime", methods=["POST"])
+@jwt_required()
 def submitcrime():
     try:
-        # Check content type
-        if request.content_type == "application/json":
-            data = request.json  # Expecting JSON
-        else:
-            data = request.form  # Expecting form-data
+        username = get_jwt_identity()  # Correctly retrieving username
+        role = get_jwt().get("role", "user")  # Ensure role is retrieved safely
 
+        if not username:
+            return jsonify({"error": "Invalid JWT token"}), 403
+
+        # Retrieve form data
+        data = request.json  # Expecting JSON input
         category = data.get("category")
         date = data.get("date")
         latitude = data.get("latitude")
         longitude = data.get("longitude")
         description = data.get("description")
+        anonymous = data.get("anonymous", False)
 
         if not (category and date and latitude and longitude):
             return jsonify({"error": "Missing required fields"}), 400
 
-        latitude = float(latitude)
-        longitude = float(longitude)
+        try:
+            latitude = float(latitude)
+            longitude = float(longitude)
+        except ValueError:
+            return jsonify({"error": "Invalid latitude/longitude"}), 400
 
-        DB.add_crime(category, date, latitude, longitude, description)
+        DB.add_crime(
+            category,
+            date,
+            latitude,
+            longitude,
+            description,
+            username if not anonymous else "Anonymous",
+        )
+
         return jsonify({"success": "Crime reported successfully"}), 200
 
-    except ValueError:
-        return jsonify({"error": "Invalid latitude or longitude"}), 400
     except Exception as e:
-        print(f"Error in submitcrime: {e}")
-        return jsonify({"error": "Internal server error"}), 500
+        return jsonify({"error": str(e)}), 500
+
+
+# ✅ Get Users (Admin Only)
+@app.route("/api/users", methods=["GET"])
+@jwt_required()
+def get_users():
+    role = get_jwt().get("role", None)
+
+    if role != "admin":
+        return jsonify({"error": "Unauthorized"}), 403
+
+    users = DB.get_all_users()
+    return jsonify(users), 200
+
+
+# ✅ Get Crime Reports (Admin Only)
+@app.route("/api/admin/crime-reports", methods=["GET"])
+@jwt_required()
+def admin_crime_reports():
+    role = get_jwt().get("role", None)
+
+    if role != "admin":
+        return jsonify({"error": "Unauthorized"}), 403
+
+    crimes = DB.get_all_crimes()
+    return jsonify(crimes), 200
+
+
+# ✅ Get User Reports
+@app.route("/api/user/reports", methods=["GET"])
+@jwt_required()
+def get_user_reports():
+    try:
+        username = get_jwt_identity()
+        user_reports = DB.get_reports_by_user(username)
+
+        return jsonify(user_reports or []), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+# ✅ Get Heatmap Data
+@app.route("/api/heatmap-data", methods=["GET"])
+def get_heatmap_data():
+    try:
+        crime_records = DB.get_all_crimes()
+
+        if not crime_records:
+            return jsonify({"error": "No crimes found"}), 404
+
+        heatmap_matrix = {}
+        locations = ["Nairobi", "Mombasa", "Kisumu", "Nakuru", "Eldoret"]
+        crime_types = ["Homicide", "Theft", "Assault", "Vandalism"]
+
+        for loc in locations:
+            heatmap_matrix[loc] = {crime: 0 for crime in crime_types}
+
+        for crime in crime_records:
+            location = crime.get("location", "Unknown")
+            category = crime.get("category", "Unknown")
+            if location in heatmap_matrix and category in heatmap_matrix[location]:
+                heatmap_matrix[location][category] += 1
+
+        return jsonify(heatmap_matrix), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 if __name__ == "__main__":
