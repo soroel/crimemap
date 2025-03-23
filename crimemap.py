@@ -10,6 +10,8 @@ from flask_jwt_extended import (
     get_jwt,
 )
 import bcrypt
+import requests
+
 
 # Use appropriate database helper
 if dbconfig.test:
@@ -210,6 +212,38 @@ def get_heatmap_data():
 
         return jsonify(heatmap_matrix), 200
 
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+def reverse_geocode(lat, lon):
+    """Convert latitude and longitude to a readable address using OpenStreetMap's Nominatim API."""
+    try:
+        url = f"https://nominatim.openstreetmap.org/reverse?format=json&lat={lat}&lon={lon}"
+        headers = {"User-Agent": "CrimeMappingApp"}
+        response = requests.get(url, headers=headers)
+        data = response.json()
+        return data.get(
+            "display_name", f"{lat}, {lon}"
+        )  # Return address or fallback to coordinates
+    except Exception as e:
+        print(f"Reverse Geocoding Error: {e}")
+        return f"{lat}, {lon}"  # Fallback in case of error
+
+
+@app.route("/api/latestcrimes", methods=["GET"])
+def latest_crimes():
+    try:
+        crimes = DB.get_latest_crimes(limit=5)  # Fetch the latest 5 crimes
+        crime_list = [
+            {
+                "category": crime["category"],
+                "location": reverse_geocode(crime["latitude"], crime["longitude"]),
+                "timestamp": crime["date"],
+            }
+            for crime in crimes
+        ]
+        return jsonify({"crimes": crime_list}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

@@ -55,7 +55,7 @@ class DBHelper:
             print(f"🔥 DB Error: {e}")
             return []
 
-    def get_latest_crimes(self, limit=10):
+    def get_latest_crimes(self, limit=5):
         """Fetch the latest crime reports."""
         try:
             with self.connect() as connection:
