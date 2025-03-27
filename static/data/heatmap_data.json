@@ -1,0 +1,226 @@
+[
+    {
+        "county": "Mombasa",
+        "latitude": -4.0435,
+        "longitude": 39.6682,
+        "crime_type": "Assault",
+        "count": 38
+    },
+    {
+        "county": "Mombasa",
+        "latitude": -4.0435,
+        "longitude": 39.6682,
+        "crime_type": "Robbery",
+        "count": 279
+    },
+    {
+        "county": "Mombasa",
+        "latitude": -4.0435,
+        "longitude": 39.6682,
+        "crime_type": "Theft",
+        "count": 473
+    },
+    {
+        "county": "Mombasa",
+        "latitude": -4.0435,
+        "longitude": 39.6682,
+        "crime_type": "Homicide",
+        "count": 77
+    },
+    {
+        "county": "Kwale",
+        "latitude": -4.1738,
+        "longitude": 39.46,
+        "crime_type": "Assault",
+        "count": 41
+    },
+    {
+        "county": "Kwale",
+        "latitude": -4.1738,
+        "longitude": 39.46,
+        "crime_type": "Robbery",
+        "count": 188
+    },
+    {
+        "county": "Kwale",
+        "latitude": -4.1738,
+        "longitude": 39.46,
+        "crime_type": "Theft",
+        "count": 128
+    },
+    {
+        "county": "Kwale",
+        "latitude": -4.1738,
+        "longitude": 39.46,
+        "crime_type": "Homicide",
+        "count": 40
+    },
+    {
+        "county": "Kilifi",
+        "latitude": -3.5107,
+        "longitude": 39.9093,
+        "crime_type": "Assault",
+        "count": 103
+    },
+    {
+        "county": "Kilifi",
+        "latitude": -3.5107,
+        "longitude": 39.9093,
+        "crime_type": "Robbery",
+        "count": 329
+    },
+    {
+        "county": "Kilifi",
+        "latitude": -3.5107,
+        "longitude": 39.9093,
+        "crime_type": "Theft",
+        "count": 358
+    },
+    {
+        "county": "Kilifi",
+        "latitude": -3.5107,
+        "longitude": 39.9093,
+        "crime_type": "Homicide",
+        "count": 112
+    },
+    {
+        "county": "Tana River",
+        "latitude": -1.235,
+        "longitude": 40.1675,
+        "crime_type": "Assault",
+        "count": 17
+    },
+    {
+        "county": "Tana River",
+        "latitude": -1.235,
+        "longitude": 40.1675,
+        "crime_type": "Robbery",
+        "count": 72
+    },
+    {
+        "county": "Tana River",
+        "latitude": -1.235,
+        "longitude": 40.1675,
+        "crime_type": "Theft",
+        "count": 73
+    },
+    {
+        "county": "Tana River",
+        "latitude": -1.235,
+        "longitude": 40.1675,
+        "crime_type": "Homicide",
+        "count": 46
+    },
+    {
+        "county": "Lamu",
+        "latitude": -2.2696,
+        "longitude": 40.9006,
+        "crime_type": "Assault",
+        "count": 9
+    },
+    {
+        "county": "Lamu",
+        "latitude": -2.2696,
+        "longitude": 40.9006,
+        "crime_type": "Robbery",
+        "count": 69
+    },
+    {
+        "county": "Lamu",
+        "latitude": -2.2696,
+        "longitude": 40.9006,
+        "crime_type": "Theft",
+        "count": 70
+    },
+    {
+        "county": "Lamu",
+        "latitude": -2.2696,
+        "longitude": 40.9006,
+        "crime_type": "Homicide",
+        "count": 19
+    },
+    {
+        "county": "Nairobi",
+        "latitude": -1.2864,
+        "longitude": 36.8172,
+        "crime_type": "Assault",
+        "count": 224
+    },
+    {
+        "county": "Nairobi",
+        "latitude": -1.2864,
+        "longitude": 36.8172,
+        "crime_type": "Robbery",
+        "count": 509
+    },
+    {
+        "county": "Nairobi",
+        "latitude": -1.2864,
+        "longitude": 36.8172,
+        "crime_type": "Theft",
+        "count": 1154
+    },
+    {
+        "county": "Nairobi",
+        "latitude": -1.2864,
+        "longitude": 36.8172,
+        "crime_type": "Homicide",
+        "count": 251
+    },
+    {
+        "county": "Kisumu",
+        "latitude": -0.0917,
+        "longitude": 34.7679,
+        "crime_type": "Assault",
+        "count": 83
+    },
+    {
+        "county": "Kisumu",
+        "latitude": -0.0917,
+        "longitude": 34.7679,
+        "crime_type": "Robbery",
+        "count": 246
+    },
+    {
+        "county": "Kisumu",
+        "latitude": -0.0917,
+        "longitude": 34.7679,
+        "crime_type": "Theft",
+        "count": 336
+    },
+    {
+        "county": "Kisumu",
+        "latitude": -0.0917,
+        "longitude": 34.7679,
+        "crime_type": "Homicide",
+        "count": 147
+    },
+    {
+        "county": "Nakuru",
+        "latitude": -0.3031,
+        "longitude": 36.08,
+        "crime_type": "Assault",
+        "count": 140
+    },
+    {
+        "county": "Nakuru",
+        "latitude": -0.3031,
+        "longitude": 36.08,
+        "crime_type": "Robbery",
+        "count": 390
+    },
+    {
+        "county": "Nakuru",
+        "latitude": -0.3031,
+        "longitude": 36.08,
+        "crime_type": "Theft",
+        "count": 748
+    },
+    {
+        "county": "Nakuru",
+        "latitude": -0.3031,
+        "longitude": 36.08,
+        "crime_type": "Homicide",
+        "count": 290
+    }
+]
