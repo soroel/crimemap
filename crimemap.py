@@ -223,13 +223,16 @@ def submit_crime():
             logger.warning("Invalid coordinates received")
             return jsonify({"error": "Invalid coordinates"}), 400
 
+        reporter_name = (
+            "Anonymous" if data.get("anonymous", False) else get_jwt_identity()
+        )
         DB.add_crime(
             category=data["category"],
             date=datetime.now(KENYA_TZ).strftime("%Y-%m-%d %H:%M:%S"),
-            latitude=latitude,
-            longitude=longitude,
+            latitude=data["latitude"],
+            longitude=data["longitude"],
             description=data.get("description", ""),
-            reporter=username if not data.get("anonymous", False) else "Anonymous",
+            username=reporter_name,
         )
         logger.info(f"Crime reported by {username}")
         return jsonify({"success": "Crime reported successfully"}), 200
@@ -352,21 +355,31 @@ def get_heatmap_data():
 
 @app.route("/api/latestcrimes", methods=["GET"])
 def latest_crimes():
-    """Get the latest crime reports."""
+    """Get the latest crime reports with proper date handling."""
     try:
         crimes = []
         for crime in DB.get_latest_crimes(limit=5):
+            # Parse the date whether it comes as string or datetime
+            crime_date = crime["date"]
+            if isinstance(crime_date, str):
+                try:
+                    # Try parsing as MySQL datetime format
+                    crime_date = datetime.strptime(crime_date, "%Y-%m-%d %H:%M:%S")
+                except ValueError:
+                    # Fallback to current time if parsing fails
+                    crime_date = datetime.now()
+
             crimes.append(
                 {
                     "category": crime["category"],
                     "location": reverse_geocode(crime["latitude"], crime["longitude"]),
-                    "timestamp": crime["date"].strftime("%Y-%m-%d %I:%M %p"),
+                    "timestamp": crime_date.strftime("%Y-%m-%d %I:%M %p"),
                 }
             )
         logger.info("Latest crimes retrieved successfully")
         return jsonify({"crimes": crimes}), 200
     except Exception as e:
-        logger.error(f"Latest crimes retrieval error: {str(e)}")
+        logger.error(f"Latest crimes retrieval error: {str(e)}", exc_info=True)
         return (
             jsonify({"error": "Failed to fetch latest crimes", "details": str(e)}),
             500,

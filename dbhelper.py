@@ -320,3 +320,59 @@ class DBHelper:
         except pymysql.MySQLError as e:
             self.logger.error(f"Error adding crime report: {e}")
             return False
+
+    def get_latest_crimes(self, limit: int = 5) -> List[Dict]:
+        """Fetch the latest crime reports with proper date handling"""
+
+        try:
+            with self.connect() as connection:
+                with connection.cursor() as cursor:
+                    query = """
+                    SELECT 
+                        id,
+                        category,
+                        date,
+                        latitude,
+                        longitude,
+                        description,
+                        username
+                    FROM crimes
+                    ORDER BY date DESC
+                    LIMIT %s
+                    """
+                    cursor.execute(query, (limit,))
+                    crimes = cursor.fetchall()
+
+                    # Process and format the results
+                    formatted_crimes = []
+                    for crime in crimes:
+                        # Ensure date is either datetime object or properly parsed
+                        crime_date = crime["date"]
+                        if isinstance(crime_date, str):
+                            try:
+                                crime_date = datetime.strptime(
+                                    crime_date, "%Y-%m-%d %H:%M:%S"
+                                )
+                            except ValueError:
+                                crime_date = datetime.now()  # fallback to current time
+
+                        formatted_crimes.append(
+                            {
+                                "id": crime["id"],
+                                "category": crime["category"],
+                                "date": crime_date.strftime("%Y-%m-%d %H:%M:%S"),
+                                "latitude": crime["latitude"],
+                                "longitude": crime["longitude"],
+                                "description": crime.get("description", ""),
+                                "username": crime.get("username", "Anonymous"),
+                                "location": self.reverse_geocode(
+                                    crime["latitude"], crime["longitude"]
+                                ),
+                            }
+                        )
+
+                    return formatted_crimes
+
+        except Exception as e:
+            self.logger.error(f"Error in get_latest_crimes: {str(e)}", exc_info=True)
+            return []
