@@ -10,12 +10,14 @@ from flask_jwt_extended import (
     get_jwt_identity,
     get_jwt,
 )
+from werkzeug.exceptions import Forbidden
 import bcrypt
 import requests
 import json
 from datetime import datetime
 import pytz
 from typing import Dict, Any, Optional
+from functools import wraps
 
 # Initialize logging
 logging.basicConfig(level=logging.INFO)
@@ -115,83 +117,115 @@ def register():
         return jsonify({"error": "Registration failed", "details": str(e)}), 500
 
 
+logger = logging.getLogger(__name__)
+
+# Simplified role permissions
+ROLES = {
+    "admin": ["manage_users", "manage_alerts", "view_reports"],
+    "user": ["submit_reports", "view_own_reports"],
+}
+
+
 @app.route("/api/login", methods=["POST"])
 def login():
-    """Authenticate user and return JWT token."""
+    """Authenticate user and return JWT token with role."""
     try:
-        # Validate request format
         if not request.is_json:
-            logger.warning("Login attempt with non-JSON payload")
-            return jsonify({"error": "Request must be JSON"}), 400
+            return jsonify({"error": "JSON payload required"}), 400
 
         data = request.get_json()
+        username = data.get("username", "").strip().lower()
+        password = data.get("password", "")
 
-        # Validate required fields
-        if error := validate_required_fields(data, ["username", "password"]):
-            logger.warning(f"Login validation failed - {error}")
-            return jsonify({"error": error}), 400
+        if not username or not password:
+            return jsonify({"error": "Username and password required"}), 400
 
-        username = data["username"].strip()
-        password = data["password"]
-
-        # Rate limiting check would go here in production
-
-        # Fetch user from database
         user = DB.get_user(username)
-        if not user:
-            # Use same error message to prevent username enumeration
-            logger.warning(f"Failed login attempt for username: {username}")
-            return jsonify({"error": "Invalid credentials"}), 401
-
-        # Verify password
-        if not bcrypt.checkpw(
-            password.encode("utf-8"), user["password"].encode("utf-8")
+        if not user or not bcrypt.checkpw(
+            password.encode(), user.get("password", "").encode()
         ):
-            logger.warning(f"Invalid password attempt for user: {username}")
+            # Generic error to prevent user enumeration
             return jsonify({"error": "Invalid credentials"}), 401
 
-        # Generate token with expiration and fresh status
+        # Determine user role (default to 'user' if not specified)
+        role = user.get("role", "user")
+        if role not in ROLES:  # Only allow defined roles
+            role = "user"
+
+        # Create token with role and permissions
+        additional_claims = {
+            "role": role,
+            "permissions": ROLES[role],
+        }
+
+        # Only add user_id if it exists in the user object
+        if "id" in user:
+            additional_claims["user_id"] = user["id"]
+
         access_token = create_access_token(
             identity=username,
-            additional_claims={
-                "role": user.get("role", DEFAULT_ROLE),
-                "fresh": True,  # Marks this as a fresh login token
+            additional_claims=additional_claims,
+        )
+
+        response_data = {
+            "token": access_token,
+            "user": {
+                "username": username,
+                "role": role,
+                "permissions": ROLES[role],
             },
-            # Optional: Set token expiration (e.g., 15 minutes)
-            # expires_delta=timedelta(minutes=15)
-        )
+            "redirect_to": "/admin/dashboard" if role == "admin" else None,
+        }
 
-        # Security logging
-        logger.info(
-            f"Successful login for user: {username}",
-            extra={"ip": request.remote_addr, "user_agent": request.user_agent.string},
-        )
+        # Add user_id to response if available
+        if "id" in user:
+            response_data["user"]["id"] = user["id"]
 
-        # Secure response
-        response = jsonify(
-            {
-                "token": access_token,
-                "role": user.get("role", DEFAULT_ROLE),
-                "message": "Login successful",
-            }
-        )
-
-        # Set secure cookies if using cookies
-        # response.set_cookie('token', access_token, httponly=True, secure=True, samesite='Strict')
-
-        return response, 200
+        return jsonify(response_data), 200
 
     except Exception as e:
-        logger.exception("Critical login error")  # Logs full traceback
-        return (
-            jsonify(
-                {
-                    "error": "Authentication service unavailable",
-                    "details": str(e) if app.debug else None,
-                }
-            ),
-            500,
-        )
+        logger.error(f"Login error: {str(e)}", exc_info=True)
+        return jsonify({"error": "Login failed"}), 500
+
+
+@app.route("/api/verify-token", methods=["GET"])
+@jwt_required()
+def verify_token():
+    current_user = get_jwt_identity()
+    return jsonify({"user": current_user, "isValid": True}), 200
+
+
+def role_required(required_role="user", required_permission=None):
+    """Decorator to restrict access by role and optional permission."""
+
+    def decorator(f):
+        @wraps(f)
+        @jwt_required()
+        def wrapper(*args, **kwargs):
+            claims = get_jwt()
+            current_role = claims.get("role", "user")
+
+            # Role check
+            if current_role != required_role:
+                logger.warning(
+                    f"Role violation: {current_role} tried to access {required_role} endpoint"
+                )
+                raise Forbidden("Insufficient privileges")
+
+            # Optional permission check
+            if required_permission and required_permission not in claims.get(
+                "permissions", []
+            ):
+                logger.warning(
+                    f"Permission violation: User lacks {required_permission}"
+                )
+                raise Forbidden("Missing required permission")
+
+            return f(*args, **kwargs)
+
+        return wrapper
+
+    return decorator
 
 
 # @app.route("/api/refresh", methods=["POST"])
@@ -278,6 +312,47 @@ def admin_crime_reports():
             jsonify({"error": "Failed to fetch crime reports", "details": str(e)}),
             500,
         )
+
+
+@app.route("/api/admin/alerts", methods=["POST"])
+@jwt_required()
+def create_alert():
+    """Admin-only alert creation with proper field mapping"""
+    try:
+        # Verify admin role
+        claims = get_jwt()
+        if claims.get("role") != "admin":
+            return jsonify({"error": "Admin privileges required"}), 403
+
+        data = request.get_json()
+
+        # Required fields validation
+        required_fields = ["username", "type", "title", "message", "severity"]
+        missing_fields = [field for field in required_fields if field not in data]
+        if missing_fields:
+            return (
+                jsonify(
+                    {"error": "Missing required fields", "missing": missing_fields}
+                ),
+                400,
+            )
+
+        # Create alert with mapped fields
+        alert_data = {
+            "username": data["username"],
+            "type": data.get("type", "crime"),
+            "title": data["title"],
+            "message": data["message"],
+            "severity": data.get("severity", "medium"),
+        }
+
+        if DB.create_alert(alert_data):
+            return jsonify({"success": True}), 201
+        return jsonify({"error": "Failed to create alert"}), 500
+
+    except Exception as e:
+        logger.error(f"Alert creation error: {str(e)}")
+        return jsonify({"error": "Internal server error"}), 500
 
 
 # User data routes

@@ -142,30 +142,25 @@ class DBHelper:
             return []
 
     def get_alerts_for_user(self, username: str) -> List[Dict]:
-        """Fetch alerts with complete debugging"""
+        """Fetch alerts for a specific user with complete debugging"""
         try:
             self.logger.debug(f"Fetching alerts for {username}")
 
             with self.connect() as connection:
                 with connection.cursor() as cursor:
-                    # Verify user exists first
-                    cursor.execute(
-                        "SELECT 1 FROM users WHERE username = %s LIMIT 1", (username,)
-                    )
-                    if not cursor.fetchone():
-                        self.logger.warning(f"User {username} not found in database")
-                        return []
-
                     # Get alerts with all available fields
                     query = """
                     SELECT 
                         id,
                         crime_category as type,
+                        title,
                         description as message,
+                        severity,
                         active as is_active,
-                        created_at
+                        created_at,
+                        username
                     FROM alerts 
-                    WHERE username = %s
+                    WHERE username = %s OR username = 'all'
                     AND active = 1
                     ORDER BY created_at DESC
                     LIMIT 50
@@ -177,16 +172,25 @@ class DBHelper:
                     # Format response
                     formatted_alerts = []
                     for alert in alerts:
-                        formatted = {
-                            "id": alert["id"],
-                            "type": alert.get("type", "crime"),
-                            "title": "Security Alert",  # Default title
-                            "message": alert.get("message", ""),
-                            "severity": "medium",  # Default severity
-                            "created_at": alert["created_at"].isoformat(),
-                            "is_active": bool(alert.get("is_active", True)),
-                        }
-                        formatted_alerts.append(formatted)
+                        try:
+                            formatted = {
+                                "id": alert["id"],
+                                "type": alert.get("type", "crime"),
+                                "title": alert.get("title", "Alert"),
+                                "message": alert.get("message", ""),
+                                "severity": alert.get("severity", "medium"),
+                                "created_at": (
+                                    alert["created_at"].isoformat()
+                                    if alert.get("created_at")
+                                    else datetime.now().isoformat()
+                                ),
+                                "is_active": bool(alert.get("is_active", True)),
+                            }
+                            formatted_alerts.append(formatted)
+                        except Exception as e:
+                            self.logger.error(
+                                f"Error formatting alert {alert}: {str(e)}"
+                            )
 
                     self.logger.info(
                         f"Formatted {len(formatted_alerts)} alerts for {username}"
@@ -206,62 +210,61 @@ class DBHelper:
         return f"{lat:.6f}, {lon:.6f}"  # Default return coordinates if no geocoding
 
     def create_alert(self, alert_data: Dict) -> bool:
-        """
-        Create a new alert in the database
-
-        Args:
-            alert_data: Dictionary containing alert fields:
-                - username: recipient username
-                - type: alert type
-                - title: alert title
-                - message: detailed message
-                - severity: low/medium/high/critical
-                - crime_id: optional associated crime ID
-                - latitude/longitude: optional location
-                - expires_at: optional expiration datetime
-
-        Returns:
-            bool: True if successful, False otherwise
-        """
-        required_fields = ["username", "category", "title", "message", "severity"]
-        if not all(field in alert_data for field in required_fields):
-            self.logger.error(f"Missing required fields in alert data: {alert_data}")
-            return False
-
+        """Create a new alert in the database with proper field mapping"""
         try:
+            # Field mapping between API and database
+            field_mapping = {
+                "username": "username",
+                "type": "crime_category",
+                "title": "title",
+                "message": "description",
+                "severity": "severity",
+            }
+
+            # Validate all required fields exist in input
+            required_fields = ["username", "type", "title", "message", "severity"]
+            missing_fields = [
+                field for field in required_fields if field not in alert_data
+            ]
+            if missing_fields:
+                self.logger.error(
+                    f"Missing required fields in alert data: {missing_fields}"
+                )
+                return False
+
             with self.connect() as connection:
                 with connection.cursor() as cursor:
                     query = """
                     INSERT INTO alerts (
                         username,
-                        category,
+                        crime_category,
                         title,
-                        message,
+                        description,
                         severity,
-                        crime_id,
-                        latitude,
-                        longitude,
-                        expires_at
-                    ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                        active,
+                        created_at
+                    ) VALUES (%s, %s, %s, %s, %s, %s, NOW())
                     """
                     cursor.execute(
                         query,
                         (
                             alert_data["username"],
-                            alert_data["category"],
+                            alert_data["type"],
                             alert_data["title"],
                             alert_data["message"],
                             alert_data["severity"],
-                            alert_data.get("crime_id"),
-                            alert_data.get("latitude"),
-                            alert_data.get("longitude"),
-                            alert_data.get("expires_at"),
+                            1,  # Set active to true by default
                         ),
                     )
-                    self.logger.info(f"Created alert for {alert_data['username']}")
+                    self.logger.info(
+                        f"Alert created successfully for {alert_data['username']}"
+                    )
                     return True
         except pymysql.MySQLError as e:
-            self.logger.error(f"Error creating alert: {str(e)}")
+            self.logger.error(f"Database error creating alert: {str(e)}")
+            return False
+        except Exception as e:
+            self.logger.error(f"Unexpected error in create_alert: {str(e)}")
             return False
 
     def mark_alert_read(self, alert_id: str, username: str) -> bool:
@@ -375,4 +378,74 @@ class DBHelper:
 
         except Exception as e:
             self.logger.error(f"Error in get_latest_crimes: {str(e)}", exc_info=True)
+            return []
+
+    def get_all_users(self) -> List[Dict]:
+        """Fetch all users from the database (admin only)."""
+        try:
+            with self.connect() as connection:
+                with connection.cursor() as cursor:
+                    query = """
+                    SELECT 
+                        id,
+                        username,
+                        role,
+                        DATE_FORMAT(created_at, '%%Y-%%m-%%d %%H:%%i:%%s') as created_at,
+                        last_login
+                    FROM users
+                    ORDER BY created_at DESC
+                    """
+                    cursor.execute(query)
+                    users = cursor.fetchall()
+
+                    # Sanitize sensitive data
+                    for user in users:
+                        if "password" in user:
+                            del user["password"]
+
+                    self.logger.info(f"Retrieved {len(users)} users")
+                    return users
+        except pymysql.MySQLError as e:
+            self.logger.error(f"Error fetching all users: {e}")
+            return []
+        except Exception as e:
+            self.logger.error(f"Unexpected error in get_all_users: {e}")
+            return []
+
+    def get_all_crimes(self) -> List[Dict]:
+        """Fetch all crime reports with detailed information."""
+        try:
+            with self.connect() as connection:
+                with connection.cursor() as cursor:
+                    query = """
+                    SELECT 
+                        c.id,
+                        c.category,
+                        DATE_FORMAT(c.date, '%%Y-%%m-%%d %%H:%%i:%%s') as date,
+                        c.latitude,
+                        c.longitude,
+                        c.description,
+                        c.status,
+                        c.username,
+                        u.role as reporter_role
+                    FROM crimes c
+                    LEFT JOIN users u ON c.username = u.username
+                    ORDER BY c.date DESC
+                    """
+                    cursor.execute(query)
+                    crimes = cursor.fetchall()
+
+                    # Add location information
+                    for crime in crimes:
+                        crime["location"] = self.reverse_geocode(
+                            crime["latitude"], crime["longitude"]
+                        )
+
+                    self.logger.info(f"Retrieved {len(crimes)} crime reports")
+                    return crimes
+        except pymysql.MySQLError as e:
+            self.logger.error(f"Error fetching all crimes: {e}")
+            return []
+        except Exception as e:
+            self.logger.error(f"Unexpected error in get_all_crimes: {e}")
             return []
