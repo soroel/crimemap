@@ -1,3 +1,4 @@
+from collections import defaultdict
 import logging
 from flask import Flask, jsonify, request
 import dbconfig
@@ -459,6 +460,33 @@ def latest_crimes():
             jsonify({"error": "Failed to fetch latest crimes", "details": str(e)}),
             500,
         )
+
+
+@app.route("/api/crime-stats", methods=["GET"])
+def get_crime_stats():
+    try:
+        # Correct path to static/data/heatmap_data.json
+        json_path = os.path.join(
+            os.path.dirname(__file__), "static", "data", "heatmap_data.json"
+        )
+
+        with open(json_path, "r") as file:
+            raw_data = json.load(file)
+
+        # Aggregate total counts by crime type
+        stats = defaultdict(int)
+        for entry in raw_data:
+            crime_type = entry.get("crime_type")
+            count = entry.get("count", 0)
+            stats[crime_type] += count
+
+        # Format for charting
+        chart_data = [{"category": k, "count": v} for k, v in stats.items()]
+        return jsonify(chart_data)
+
+    except Exception as e:
+        logger.error(f"Error reading or processing file: {e}")
+        return jsonify({"error": "Failed to load crime stats"}), 500
 
 
 if __name__ == "__main__":
