@@ -10,6 +10,7 @@ from flask_jwt_extended import (
     jwt_required,
     get_jwt_identity,
     get_jwt,
+    create_refresh_token,
 )
 from werkzeug.exceptions import Forbidden
 import bcrypt
@@ -36,6 +37,8 @@ DB = DBHelper()
 
 # Configuration
 app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY", "jwt-secret")
+app.config["JWT_ACCESS_TOKEN_EXPIRES"] = 60 * 60 * 24 * 7  # 7 days
+app.config["JWT_REFRESH_TOKEN_EXPIRES"] = 60 * 60 * 24 * 30  # 30 days
 
 # Initialize extensions
 CORS(
@@ -163,13 +166,18 @@ def login():
         if "id" in user:
             additional_claims["user_id"] = user["id"]
 
+        # Create access token
         access_token = create_access_token(
             identity=username,
             additional_claims=additional_claims,
         )
+        
+        # Create refresh token
+        refresh_token = create_refresh_token(identity=username)
 
         response_data = {
             "token": access_token,
+            "refreshToken": refresh_token,
             "user": {
                 "username": username,
                 "role": role,
@@ -181,6 +189,9 @@ def login():
         # Add user_id to response if available
         if "id" in user:
             response_data["user"]["id"] = user["id"]
+            
+        # Update last login time
+        DB.update_last_login(username)
 
         return jsonify(response_data), 200
 
@@ -193,7 +204,19 @@ def login():
 @jwt_required()
 def verify_token():
     current_user = get_jwt_identity()
-    return jsonify({"user": current_user, "isValid": True}), 200
+    user = DB.get_user(current_user)
+    
+    # Construct user data object similar to login response
+    user_data = {
+        "username": user["username"],
+        "role": user.get("role", "user"),
+        "permissions": ROLES[user.get("role", "user")],
+    }
+    
+    if "id" in user:
+        user_data["id"] = user["id"]
+        
+    return jsonify({"user": user_data, "isValid": True}), 200
 
 
 def role_required(required_role="user", required_permission=None):
@@ -229,12 +252,44 @@ def role_required(required_role="user", required_permission=None):
     return decorator
 
 
-# @app.route("/api/refresh", methods=["POST"])
-# @jwt_required(refresh=True)
-# def refresh():
-#     current_user = get_jwt_identity()
-#     new_token = create_access_token(identity=current_user)
-#     return jsonify({"token": new_token}), 200
+@app.route("/api/refresh-token", methods=["POST"])
+@jwt_required(refresh=True)
+def refresh():
+    """Refresh the access token using a valid refresh token."""
+    try:
+        # Get user identity from refresh token
+        current_user = get_jwt_identity()
+        
+        # Get user data
+        user = DB.get_user(current_user)
+        if not user:
+            logger.warning(f"Refresh token used for non-existent user: {current_user}")
+            return jsonify({"error": "Invalid refresh token"}), 401
+            
+        # Create new access token with the same claims
+        role = user.get("role", "user")
+        if role not in ROLES:
+            role = "user"
+            
+        additional_claims = {
+            "role": role,
+            "permissions": ROLES[role],
+        }
+        
+        if "id" in user:
+            additional_claims["user_id"] = user["id"]
+            
+        new_token = create_access_token(
+            identity=current_user,
+            additional_claims=additional_claims,
+        )
+        
+        logger.info(f"Refreshed token for user {current_user}")
+        return jsonify({"token": new_token}), 200
+        
+    except Exception as e:
+        logger.exception(f"Token refresh error: {str(e)}")
+        return jsonify({"error": "Failed to refresh token"}), 500
 
 
 # Crime reporting routes
@@ -293,6 +348,151 @@ def get_users():
     except Exception as e:
         logger.error(f"Users retrieval error: {str(e)}")
         return jsonify({"error": "Failed to fetch users", "details": str(e)}), 500
+
+
+@app.route("/api/users", methods=["POST"])
+@jwt_required()
+def create_user():
+    """Create a new user (admin only)."""
+    try:
+        # Verify admin role
+        if get_jwt().get("role") != ADMIN_ROLE:
+            logger.warning("Unauthorized access attempt to create user")
+            return jsonify({"error": "Unauthorized"}), 403
+            
+        # Get request data
+        data = request.json
+        if not data:
+            logger.warning("No data provided in user creation request")
+            return jsonify({"error": "No data provided"}), 400
+        
+        # Log the received data for debugging (without password)
+        safe_data = {k: v for k, v in data.items() if k != "password"}
+        logger.info(f"User creation request with data: {safe_data}")
+            
+        # Validate required fields more flexibly
+        username = data.get("username", "").strip()
+        password = data.get("password", "")
+        
+        if not username:
+            return jsonify({"error": "Username is required"}), 400
+            
+        if not password:
+            return jsonify({"error": "Password is required"}), 400
+            
+        # Get role with a safe default
+        role = data.get("role", DEFAULT_ROLE)
+        
+        # More permissive role validation - default to user role if invalid
+        if role not in ROLES:
+            logger.warning(f"Invalid role '{role}' provided, defaulting to '{DEFAULT_ROLE}'")
+            role = DEFAULT_ROLE
+            
+        # Hash the password
+        hashed_pw = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode("utf-8")
+        
+        # Create the user
+        creation_result = DB.create_user(username, hashed_pw, role)
+        if creation_result:
+            logger.info(f"New user '{username}' with role '{role}' created successfully")
+            
+            # Get the newly created user
+            user = DB.get_user(username)
+            if not user:
+                logger.error(f"User '{username}' was created but could not be retrieved")
+                return jsonify({"success": True, "message": "User created but could not fetch details"}), 201
+                
+            user_data = {
+                "username": user.get("username", username),
+                "role": user.get("role", role)
+            }
+            
+            if "id" in user:
+                user_data["id"] = user["id"]
+            
+            return jsonify({
+                "success": True, 
+                "message": "User created successfully", 
+                "user": user_data
+            }), 201
+        else:
+            logger.warning(f"Failed to create user '{username}', may already exist")
+            return jsonify({"error": "Username already exists or could not create user"}), 400
+            
+    except Exception as e:
+        logger.exception(f"Error creating user: {str(e)}")
+        return jsonify({"error": "Failed to create user", "details": str(e)}), 500
+
+
+@app.route("/api/users/<int:user_id>", methods=["DELETE"])
+@jwt_required()
+def delete_user(user_id):
+    """Delete a user (admin only)."""
+    try:
+        if get_jwt().get("role") != ADMIN_ROLE:
+            logger.warning("Unauthorized access attempt to delete user")
+            return jsonify({"error": "Unauthorized"}), 403
+
+        # Get the admin's username for logging
+        admin_username = get_jwt_identity()
+        
+        # Can't delete yourself
+        if DB.is_same_user(user_id, admin_username):
+            logger.warning(f"Admin {admin_username} attempted to delete their own account")
+            return jsonify({"error": "Cannot delete your own account"}), 400
+        
+        # Delete the user
+        if DB.delete_user(user_id):
+            logger.info(f"User ID {user_id} deleted by admin {admin_username}")
+            return jsonify({"success": True, "message": "User deleted successfully"}), 200
+        else:
+            logger.error(f"Failed to delete user {user_id}")
+            return jsonify({"error": "Failed to delete user"}), 500
+            
+    except Exception as e:
+        logger.exception(f"Error deleting user {user_id}: {str(e)}")
+        error_details = str(e) if app.debug else "Internal server error"
+        return jsonify({"error": "Failed to delete user", "details": error_details}), 500
+
+
+@app.route("/api/users/<int:user_id>", methods=["PUT"])
+@jwt_required()
+def update_user(user_id):
+    """Update a user (admin only)."""
+    try:
+        if get_jwt().get("role") != ADMIN_ROLE:
+            logger.warning("Unauthorized access attempt to update user")
+            return jsonify({"error": "Unauthorized"}), 403
+
+        # Get the admin's username for logging
+        admin_username = get_jwt_identity()
+        
+        # Get request data
+        data = request.json
+        if not data:
+            return jsonify({"error": "No data provided"}), 400
+            
+        # Validate data
+        allowed_fields = ["username", "role"]
+        update_data = {k: v for k, v in data.items() if k in allowed_fields}
+        
+        if not update_data:
+            return jsonify({"error": "No valid fields to update"}), 400
+            
+        # Update the user
+        success = DB.update_user(user_id, update_data)
+        
+        if success:
+            logger.info(f"User ID {user_id} updated by admin {admin_username}")
+            return jsonify({"success": True, "message": "User updated successfully"}), 200
+        else:
+            logger.error(f"Failed to update user {user_id}")
+            return jsonify({"error": "Failed to update user"}), 500
+            
+    except Exception as e:
+        logger.exception(f"Error updating user {user_id}: {str(e)}")
+        error_details = str(e) if app.debug else "Internal server error"
+        return jsonify({"error": "Failed to update user", "details": error_details}), 500
 
 
 @app.route("/api/admin/crime-reports", methods=["GET"])
@@ -408,6 +608,148 @@ def get_user_reports():
             ),
             500,
         )
+
+
+@app.route("/api/user/reports/<int:report_id>", methods=["PUT"])
+@jwt_required()
+def update_user_report(report_id):
+    """Update a crime report submitted by the current user."""
+    try:
+        username = get_jwt_identity()
+        
+        if not username:
+            logger.error("No username found in JWT token")
+            return jsonify({"error": "User not authenticated"}), 401
+            
+        # Get the request data
+        data = request.json
+        if not data:
+            return jsonify({"error": "No data provided"}), 400
+            
+        # Check if report exists and belongs to user
+        report = DB.get_report_by_id(report_id)
+        if not report:
+            return jsonify({"error": "Report not found"}), 404
+            
+        if report["username"] != username and get_jwt().get("role") != ADMIN_ROLE:
+            return jsonify({"error": "Unauthorized to modify this report"}), 403
+            
+        # Update the report
+        success = DB.update_crime(
+            report_id=report_id,
+            category=data.get("category"),
+            description=data.get("description"),
+            status=data.get("status"),
+            latitude=data.get("latitude"),
+            longitude=data.get("longitude")
+        )
+        
+        if success:
+            logger.info(f"Report {report_id} updated successfully by {username}")
+            return jsonify({"success": True, "message": "Report updated successfully"}), 200
+        else:
+            logger.error(f"Failed to update report {report_id}")
+            return jsonify({"error": "Failed to update report"}), 500
+            
+    except Exception as e:
+        logger.exception(f"Error updating report {report_id}: {str(e)}")
+        error_details = str(e) if app.debug else "Internal server error"
+        return jsonify({"error": "Failed to update report", "details": error_details}), 500
+
+
+@app.route("/api/user/reports/<int:report_id>", methods=["DELETE"])
+@jwt_required()
+def delete_user_report(report_id):
+    """Delete a crime report submitted by the current user."""
+    try:
+        username = get_jwt_identity()
+        
+        if not username:
+            logger.error("No username found in JWT token")
+            return jsonify({"error": "User not authenticated"}), 401
+            
+        # Check if report exists and belongs to user
+        report = DB.get_report_by_id(report_id)
+        if not report:
+            return jsonify({"error": "Report not found"}), 404
+            
+        if report["username"] != username and get_jwt().get("role") != ADMIN_ROLE:
+            return jsonify({"error": "Unauthorized to delete this report"}), 403
+            
+        # Delete the report
+        success = DB.delete_crime(report_id)
+        
+        if success:
+            logger.info(f"Report {report_id} deleted successfully by {username}")
+            return jsonify({"success": True, "message": "Report deleted successfully"}), 200
+        else:
+            logger.error(f"Failed to delete report {report_id}")
+            return jsonify({"error": "Failed to delete report"}), 500
+            
+    except Exception as e:
+        logger.exception(f"Error deleting report {report_id}: {str(e)}")
+        error_details = str(e) if app.debug else "Internal server error"
+        return jsonify({"error": "Failed to delete report", "details": error_details}), 500
+
+
+# Admin crime report routes
+@app.route("/api/admin/crime-reports/<int:report_id>", methods=["PUT"])
+@jwt_required()
+def update_admin_crime_report(report_id):
+    """Update a crime report (admin only)."""
+    try:
+        if get_jwt().get("role") != ADMIN_ROLE:
+            logger.warning("Unauthorized access attempt to update crime report")
+            return jsonify({"error": "Unauthorized"}), 403
+            
+        data = request.json
+        if not data:
+            return jsonify({"error": "No data provided"}), 400
+            
+        success = DB.update_crime(
+            report_id=report_id,
+            category=data.get("category"),
+            description=data.get("description"),
+            status=data.get("status"),
+            latitude=data.get("latitude"),
+            longitude=data.get("longitude")
+        )
+        
+        if success:
+            logger.info(f"Admin updated report {report_id}")
+            return jsonify({"success": True, "message": "Report updated successfully"}), 200
+        else:
+            logger.error(f"Admin failed to update report {report_id}")
+            return jsonify({"error": "Failed to update report"}), 500
+            
+    except Exception as e:
+        logger.exception(f"Admin error updating report {report_id}: {str(e)}")
+        error_details = str(e) if app.debug else "Internal server error"
+        return jsonify({"error": "Failed to update report", "details": error_details}), 500
+
+
+@app.route("/api/admin/crime-reports/<int:report_id>", methods=["DELETE"])
+@jwt_required()
+def delete_admin_crime_report(report_id):
+    """Delete a crime report (admin only)."""
+    try:
+        if get_jwt().get("role") != ADMIN_ROLE:
+            logger.warning("Unauthorized access attempt to delete crime report")
+            return jsonify({"error": "Unauthorized"}), 403
+            
+        success = DB.delete_crime(report_id)
+        
+        if success:
+            logger.info(f"Admin deleted report {report_id}")
+            return jsonify({"success": True, "message": "Report deleted successfully"}), 200
+        else:
+            logger.error(f"Admin failed to delete report {report_id}")
+            return jsonify({"error": "Failed to delete report"}), 500
+            
+    except Exception as e:
+        logger.exception(f"Admin error deleting report {report_id}: {str(e)}")
+        error_details = str(e) if app.debug else "Internal server error"
+        return jsonify({"error": "Failed to delete report", "details": error_details}), 500
 
 
 # Public data routes

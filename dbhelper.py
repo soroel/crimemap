@@ -36,25 +36,46 @@ class DBHelper:
 
     def create_user(self, username, hashed_password, role="user"):
         """Creates a new user with additional validation."""
-        if not all([username, hashed_password]):
-            self.logger.error("Missing required fields for user creation")
+        if not username or not hashed_password:
+            self.logger.error(f"Missing required fields for user creation: username={bool(username)}, password={bool(hashed_password)}")
             return False
 
         try:
+            # Check for existing username first
             with self.connect() as connection:
                 with connection.cursor() as cursor:
+                    # Case-insensitive check for existing username
+                    cursor.execute(
+                        "SELECT 1 FROM users WHERE LOWER(username) = LOWER(%s)", 
+                        (username,)
+                    )
+                    if cursor.fetchone():
+                        self.logger.warning(f"Username '{username}' already exists (case-insensitive check)")
+                        return False
+                    
+                    # Insert the new user
                     query = """
-                    INSERT INTO users (username, password, role) 
-                    VALUES (%s, %s, %s)
+                    INSERT INTO users (username, password, role, created_at) 
+                    VALUES (%s, %s, %s, NOW())
                     """
                     cursor.execute(query, (username, hashed_password, role))
-                self.logger.info(f"User {username} created successfully")
-                return True
-        except pymysql.IntegrityError:
-            self.logger.warning(f"Username {username} already exists")
+                    
+                    # Verify insertion success
+                    if cursor.rowcount == 1:
+                        self.logger.info(f"User '{username}' with role '{role}' created successfully")
+                        return True
+                    else:
+                        self.logger.error(f"User creation failed for '{username}' - no rows affected")
+                        return False
+                        
+        except pymysql.IntegrityError as e:
+            self.logger.warning(f"Username '{username}' creation failed due to integrity error: {e}")
             return False
         except pymysql.MySQLError as e:
-            self.logger.error(f"Error creating user {username}: {e}")
+            self.logger.error(f"Database error creating user '{username}': {e}")
+            return False
+        except Exception as e:
+            self.logger.exception(f"Unexpected error creating user '{username}': {e}")
             return False
 
     def get_user(self, username):
@@ -449,3 +470,292 @@ class DBHelper:
         except Exception as e:
             self.logger.error(f"Unexpected error in get_all_crimes: {e}")
             return []
+
+    def get_report_by_id(self, report_id: int) -> Optional[Dict]:
+        """Get a specific crime report by ID."""
+        try:
+            with self.connect() as connection:
+                with connection.cursor() as cursor:
+                    query = """
+                    SELECT 
+                        id,
+                        category,
+                        DATE_FORMAT(date, '%%Y-%%m-%%d %%H:%%i:%%s') as date,
+                        latitude,
+                        longitude,
+                        description,
+                        status,
+                        username
+                    FROM crimes
+                    WHERE id = %s
+                    """
+                    cursor.execute(query, (report_id,))
+                    report = cursor.fetchone()
+                    
+                    if report:
+                        self.logger.info(f"Retrieved report ID {report_id}")
+                    else:
+                        self.logger.warning(f"No report found with ID {report_id}")
+                        
+                    return report
+        except pymysql.MySQLError as e:
+            self.logger.error(f"Database error retrieving report {report_id}: {e}")
+            return None
+        except Exception as e:
+            self.logger.error(f"Unexpected error in get_report_by_id: {e}")
+            return None
+            
+    def update_crime(self, report_id: int, **fields) -> bool:
+        """Update a crime report with the given fields.
+        
+        Args:
+            report_id: The ID of the report to update
+            **fields: Fields to update (category, description, status, latitude, longitude)
+            
+        Returns:
+            bool: True if update successful, False otherwise
+        """
+        try:
+            # Remove None values and empty strings from fields
+            update_fields = {k: v for k, v in fields.items() if v is not None and v != ""}
+            
+            if not update_fields:
+                self.logger.warning(f"No valid fields provided to update report {report_id}")
+                return False
+                
+            # Create SET clause for SQL update
+            set_clause = ", ".join([f"{key} = %s" for key in update_fields.keys()])
+            values = list(update_fields.values())
+            values.append(report_id)  # Add report_id for WHERE clause
+            
+            with self.connect() as connection:
+                with connection.cursor() as cursor:
+                    query = f"""
+                    UPDATE crimes
+                    SET {set_clause}
+                    WHERE id = %s
+                    """
+                    cursor.execute(query, values)
+                    
+                    if cursor.rowcount == 0:
+                        self.logger.warning(f"No report found with ID {report_id} to update")
+                        return False
+                        
+                    self.logger.info(f"Successfully updated report {report_id}")
+                    return True
+        except pymysql.MySQLError as e:
+            self.logger.error(f"Database error updating report {report_id}: {e}")
+            return False
+        except Exception as e:
+            self.logger.error(f"Unexpected error in update_crime: {e}")
+            return False
+            
+    def delete_crime(self, report_id: int) -> bool:
+        """Delete a crime report by ID.
+        
+        Args:
+            report_id: The ID of the report to delete
+            
+        Returns:
+            bool: True if deletion successful, False otherwise
+        """
+        try:
+            with self.connect() as connection:
+                with connection.cursor() as cursor:
+                    query = """
+                    DELETE FROM crimes
+                    WHERE id = %s
+                    """
+                    cursor.execute(query, (report_id,))
+                    
+                    if cursor.rowcount == 0:
+                        self.logger.warning(f"No report found with ID {report_id} to delete")
+                        return False
+                        
+                    self.logger.info(f"Successfully deleted report {report_id}")
+                    return True
+        except pymysql.MySQLError as e:
+            self.logger.error(f"Database error deleting report {report_id}: {e}")
+            return False
+        except Exception as e:
+            self.logger.error(f"Unexpected error in delete_crime: {e}")
+            return False
+            
+    def delete_user(self, user_id: int) -> bool:
+        """Delete a user from the database.
+        
+        Args:
+            user_id: The ID of the user to delete
+            
+        Returns:
+            bool: True if deletion successful, False otherwise
+        """
+        try:
+            with self.connect() as connection:
+                # Begin a transaction since we'll delete related records
+                connection.begin()
+                
+                try:
+                    with connection.cursor() as cursor:
+                        # Get the username first
+                        cursor.execute("SELECT username FROM users WHERE id = %s", (user_id,))
+                        user_record = cursor.fetchone()
+                        
+                        if not user_record:
+                            self.logger.warning(f"No user found with ID {user_id} to delete")
+                            return False
+                            
+                        username = user_record["username"]
+                        
+                        # Delete user's crime reports
+                        cursor.execute("DELETE FROM crimes WHERE username = %s", (username,))
+                        crime_count = cursor.rowcount
+                        
+                        # Delete user's alerts
+                        cursor.execute("DELETE FROM alerts WHERE username = %s", (username,))
+                        alert_count = cursor.rowcount
+                        
+                        # Finally delete the user
+                        cursor.execute("DELETE FROM users WHERE id = %s", (user_id,))
+                        
+                        if cursor.rowcount == 0:
+                            # This shouldn't happen, but just in case
+                            connection.rollback()
+                            self.logger.error(f"Failed to delete user with ID {user_id}")
+                            return False
+                            
+                    # If we get here, commit the transaction
+                    connection.commit()
+                    self.logger.info(f"Successfully deleted user ID {user_id} (username: {username}) and {crime_count} reports, {alert_count} alerts")
+                    return True
+                    
+                except Exception as e:
+                    # Roll back on any error
+                    connection.rollback()
+                    self.logger.error(f"Transaction error deleting user {user_id}: {e}")
+                    raise
+                    
+        except pymysql.MySQLError as e:
+            self.logger.error(f"Database error deleting user {user_id}: {e}")
+            return False
+        except Exception as e:
+            self.logger.exception(f"Unexpected error in delete_user for {user_id}")
+            return False
+            
+    def is_same_user(self, user_id: int, username: str) -> bool:
+        """Check if the given user ID matches the given username.
+        
+        Args:
+            user_id: User ID to check
+            username: Username to compare against
+            
+        Returns:
+            bool: True if the user ID corresponds to the given username
+        """
+        try:
+            with self.connect() as connection:
+                with connection.cursor() as cursor:
+                    query = """
+                    SELECT 1 FROM users
+                    WHERE id = %s AND BINARY username = %s
+                    """
+                    cursor.execute(query, (user_id, username))
+                    result = cursor.fetchone()
+                    return bool(result)
+        except Exception as e:
+            self.logger.error(f"Error checking if user {user_id} is {username}: {e}")
+            # Default to True to prevent deletion in case of error
+            return True
+            
+    def update_user(self, user_id: int, update_data: Dict) -> bool:
+        """Update a user's information.
+        
+        Args:
+            user_id: The ID of the user to update
+            update_data: Dictionary of fields to update (username, role)
+            
+        Returns:
+            bool: True if update successful, False otherwise
+        """
+        if not update_data:
+            self.logger.warning(f"No data provided to update user {user_id}")
+            return False
+            
+        try:
+            # Create SET clause for SQL update
+            set_clause = ", ".join([f"{key} = %s" for key in update_data.keys()])
+            values = list(update_data.values())
+            values.append(user_id)  # Add user_id for WHERE clause
+            
+            with self.connect() as connection:
+                with connection.cursor() as cursor:
+                    # Check if user exists
+                    cursor.execute("SELECT 1 FROM users WHERE id = %s", (user_id,))
+                    if not cursor.fetchone():
+                        self.logger.warning(f"User {user_id} not found for update")
+                        return False
+                        
+                    # If updating username, check if new username already exists
+                    if "username" in update_data:
+                        cursor.execute(
+                            "SELECT 1 FROM users WHERE BINARY username = %s AND id != %s",
+                            (update_data["username"], user_id)
+                        )
+                        if cursor.fetchone():
+                            self.logger.warning(f"Username {update_data['username']} already exists")
+                            return False
+                    
+                    # Perform update
+                    query = f"""
+                    UPDATE users
+                    SET {set_clause}
+                    WHERE id = %s
+                    """
+                    cursor.execute(query, values)
+                    
+                    if cursor.rowcount == 0:
+                        self.logger.warning(f"No rows affected when updating user {user_id}")
+                        return False
+                        
+                    self.logger.info(f"Successfully updated user {user_id}")
+                    return True
+                    
+        except pymysql.MySQLError as e:
+            self.logger.error(f"Database error updating user {user_id}: {e}")
+            return False
+        except Exception as e:
+            self.logger.exception(f"Unexpected error in update_user for {user_id}")
+            return False
+
+    def update_last_login(self, username: str) -> bool:
+        """Update the last login timestamp for a user.
+        
+        Args:
+            username: The username of the user logging in
+            
+        Returns:
+            bool: True if update successful, False otherwise
+        """
+        try:
+            with self.connect() as connection:
+                with connection.cursor() as cursor:
+                    query = """
+                    UPDATE users
+                    SET last_login = NOW()
+                    WHERE BINARY username = %s
+                    """
+                    cursor.execute(query, (username,))
+                    
+                    if cursor.rowcount == 0:
+                        self.logger.warning(f"User {username} not found to update last login")
+                        return False
+                        
+                    self.logger.info(f"Updated last login for user {username}")
+                    return True
+                    
+        except pymysql.MySQLError as e:
+            self.logger.error(f"Database error updating last login for {username}: {e}")
+            return False
+        except Exception as e:
+            self.logger.error(f"Unexpected error in update_last_login: {e}")
+            return False
