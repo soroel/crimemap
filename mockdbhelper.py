@@ -40,8 +40,27 @@ class MockDBHelper:
     def get_all_crimes(self):
         return self.mock_crimes
         
-    def get_reports_by_user(self, username):
-        return [report for report in self.mock_crimes if report.get('username') == username]
+    def get_reports_by_user(self, username, page=1, per_page=5):
+        """Mock implementation of paginated user reports."""
+        # Filter reports for the user
+        user_reports = [report for report in self.mock_crimes if report.get('username') == username]
+        
+        # Calculate pagination
+        total_reports = len(user_reports)
+        total_pages = (total_reports + per_page - 1) // per_page
+        
+        # Calculate slice indices
+        start_idx = (page - 1) * per_page
+        end_idx = start_idx + per_page
+        
+        # Get paginated reports
+        paginated_reports = user_reports[start_idx:end_idx]
+        
+        return {
+            "reports": paginated_reports,
+            "total_pages": total_pages,
+            "total_reports": total_reports
+        }
         
     def get_report_by_id(self, report_id):
         for report in self.mock_crimes:
@@ -111,5 +130,13 @@ class MockDBHelper:
         return True
         
     def update_last_login(self, username):
+        # Always return success in mock mode
+        return True
+
+    def update_alert(self, alert_id, alert_data):
+        # Always return success in mock mode
+        return True
+
+    def delete_alert(self, alert_id):
         # Always return success in mock mode
         return True

@@ -1,31 +1,283 @@
 [
     {
-        "county": "Mombasa",
-        "latitude": -4.0435,
-        "longitude": 39.6682,
-        "crime_type": "Assault",
-        "count": 38
+        "county": "Nairobi",
+        "latitude": -1.2864,
+        "longitude": 36.8172,
+        "crime_type": "Homicide",
+        "count": 251
     },
     {
-        "county": "Mombasa",
-        "latitude": -4.0435,
-        "longitude": 39.6682,
-        "crime_type": "Robbery",
-        "count": 279
-    },
-    {
-        "county": "Mombasa",
-        "latitude": -4.0435,
-        "longitude": 39.6682,
+        "county": "Nairobi",
+        "latitude": -1.2864,
+        "longitude": 36.8172,
         "crime_type": "Theft",
-        "count": 473
+        "count": 1154
+    },
+    {
+        "county": "Nairobi",
+        "latitude": -1.2864,
+        "longitude": 36.8172,
+        "crime_type": "Assault",
+        "count": 224
+    },
+    {
+        "county": "Nairobi",
+        "latitude": -1.2864,
+        "longitude": 36.8172,
+        "crime_type": "Vandalism",
+        "count": 509
     },
     {
         "county": "Mombasa",
         "latitude": -4.0435,
         "longitude": 39.6682,
         "crime_type": "Homicide",
-        "count": 77
+        "count": 177
+    },
+    {
+        "county": "Mombasa",
+        "latitude": -4.0435,
+        "longitude": 39.6682,
+        "crime_type": "Theft",
+        "count": 873
+    },
+    {
+        "county": "Mombasa",
+        "latitude": -4.0435,
+        "longitude": 39.6682,
+        "crime_type": "Assault",
+        "count": 238
+    },
+    {
+        "county": "Mombasa",
+        "latitude": -4.0435,
+        "longitude": 39.6682,
+        "crime_type": "Vandalism",
+        "count": 379
+    },
+    {
+        "county": "Kisumu",
+        "latitude": -0.0917,
+        "longitude": 34.7679,
+        "crime_type": "Homicide",
+        "count": 147
+    },
+    {
+        "county": "Kisumu",
+        "latitude": -0.0917,
+        "longitude": 34.7679,
+        "crime_type": "Theft",
+        "count": 536
+    },
+    {
+        "county": "Kisumu",
+        "latitude": -0.0917,
+        "longitude": 34.7679,
+        "crime_type": "Assault",
+        "count": 183
+    },
+    {
+        "county": "Kisumu",
+        "latitude": -0.0917,
+        "longitude": 34.7679,
+        "crime_type": "Vandalism",
+        "count": 246
+    },
+    {
+        "county": "Nakuru",
+        "latitude": -0.3031,
+        "longitude": 36.08,
+        "crime_type": "Homicide",
+        "count": 190
+    },
+    {
+        "county": "Nakuru",
+        "latitude": -0.3031,
+        "longitude": 36.08,
+        "crime_type": "Theft",
+        "count": 748
+    },
+    {
+        "county": "Nakuru",
+        "latitude": -0.3031,
+        "longitude": 36.08,
+        "crime_type": "Assault",
+        "count": 240
+    },
+    {
+        "county": "Nakuru",
+        "latitude": -0.3031,
+        "longitude": 36.08,
+        "crime_type": "Vandalism",
+        "count": 390
+    },
+    {
+        "county": "Uasin Gishu",
+        "latitude": 0.5143,
+        "longitude": 35.2698,
+        "crime_type": "Homicide",
+        "count": 112
+    },
+    {
+        "county": "Uasin Gishu",
+        "latitude": 0.5143,
+        "longitude": 35.2698,
+        "crime_type": "Theft",
+        "count": 458
+    },
+    {
+        "county": "Uasin Gishu",
+        "latitude": 0.5143,
+        "longitude": 35.2698,
+        "crime_type": "Assault",
+        "count": 203
+    },
+    {
+        "county": "Uasin Gishu",
+        "latitude": 0.5143,
+        "longitude": 35.2698,
+        "crime_type": "Vandalism",
+        "count": 329
+    },
+    {
+        "county": "Kiambu",
+        "latitude": -1.1748,
+        "longitude": 36.8965,
+        "crime_type": "Homicide",
+        "count": 165
+    },
+    {
+        "county": "Kiambu",
+        "latitude": -1.1748,
+        "longitude": 36.8965,
+        "crime_type": "Theft",
+        "count": 682
+    },
+    {
+        "county": "Kiambu",
+        "latitude": -1.1748,
+        "longitude": 36.8965,
+        "crime_type": "Assault",
+        "count": 198
+    },
+    {
+        "county": "Kiambu",
+        "latitude": -1.1748,
+        "longitude": 36.8965,
+        "crime_type": "Vandalism",
+        "count": 345
+    },
+    {
+        "county": "Machakos",
+        "latitude": -1.5177,
+        "longitude": 37.2634,
+        "crime_type": "Homicide",
+        "count": 128
+    },
+    {
+        "county": "Machakos",
+        "latitude": -1.5177,
+        "longitude": 37.2634,
+        "crime_type": "Theft",
+        "count": 524
+    },
+    {
+        "county": "Machakos",
+        "latitude": -1.5177,
+        "longitude": 37.2634,
+        "crime_type": "Assault",
+        "count": 167
+    },
+    {
+        "county": "Machakos",
+        "latitude": -1.5177,
+        "longitude": 37.2634,
+        "crime_type": "Vandalism",
+        "count": 289
+    },
+    {
+        "county": "Kisii",
+        "latitude": -0.6698,
+        "longitude": 34.7717,
+        "crime_type": "Homicide",
+        "count": 98
+    },
+    {
+        "county": "Kisii",
+        "latitude": -0.6698,
+        "longitude": 34.7717,
+        "crime_type": "Theft",
+        "count": 412
+    },
+    {
+        "county": "Kisii",
+        "latitude": -0.6698,
+        "longitude": 34.7717,
+        "crime_type": "Assault",
+        "count": 156
+    },
+    {
+        "county": "Kisii",
+        "latitude": -0.6698,
+        "longitude": 34.7717,
+        "crime_type": "Vandalism",
+        "count": 234
+    },
+    {
+        "county": "Nyeri",
+        "latitude": -0.4169,
+        "longitude": 36.9514,
+        "crime_type": "Homicide",
+        "count": 87
+    },
+    {
+        "county": "Nyeri",
+        "latitude": -0.4169,
+        "longitude": 36.9514,
+        "crime_type": "Theft",
+        "count": 378
+    },
+    {
+        "county": "Nyeri",
+        "latitude": -0.4169,
+        "longitude": 36.9514,
+        "crime_type": "Assault",
+        "count": 143
+    },
+    {
+        "county": "Nyeri",
+        "latitude": -0.4169,
+        "longitude": 36.9514,
+        "crime_type": "Vandalism",
+        "count": 198
+    },
+    {
+        "county": "Kakamega",
+        "latitude": 0.2827,
+        "longitude": 34.7519,
+        "crime_type": "Homicide",
+        "count": 134
+    },
+    {
+        "county": "Kakamega",
+        "latitude": 0.2827,
+        "longitude": 34.7519,
+        "crime_type": "Theft",
+        "count": 489
+    },
+    {
+        "county": "Kakamega",
+        "latitude": 0.2827,
+        "longitude": 34.7519,
+        "crime_type": "Assault",
+        "count": 178
+    },
+    {
+        "county": "Kakamega",
+        "latitude": 0.2827,
+        "longitude": 34.7519,
+        "crime_type": "Vandalism",
+        "count": 267
     },
     {
         "county": "Kwale",
@@ -140,87 +392,899 @@
         "count": 19
     },
     {
-        "county": "Nairobi",
-        "latitude": -1.2864,
-        "longitude": 36.8172,
-        "crime_type": "Assault",
-        "count": 224
-    },
-    {
-        "county": "Nairobi",
-        "latitude": -1.2864,
-        "longitude": 36.8172,
-        "crime_type": "Robbery",
-        "count": 509
-    },
-    {
-        "county": "Nairobi",
-        "latitude": -1.2864,
-        "longitude": 36.8172,
-        "crime_type": "Theft",
-        "count": 1154
-    },
-    {
-        "county": "Nairobi",
-        "latitude": -1.2864,
-        "longitude": 36.8172,
+        "county": "Kilifi",
+        "latitude": -3.5107,
+        "longitude": 39.9093,
         "crime_type": "Homicide",
-        "count": 251
+        "count": 112
     },
     {
-        "county": "Kisumu",
-        "latitude": -0.0917,
-        "longitude": 34.7679,
-        "crime_type": "Assault",
-        "count": 83
-    },
-    {
-        "county": "Kisumu",
-        "latitude": -0.0917,
-        "longitude": 34.7679,
-        "crime_type": "Robbery",
-        "count": 246
-    },
-    {
-        "county": "Kisumu",
-        "latitude": -0.0917,
-        "longitude": 34.7679,
+        "county": "Kilifi",
+        "latitude": -3.5107,
+        "longitude": 39.9093,
         "crime_type": "Theft",
-        "count": 336
+        "count": 458
     },
     {
-        "county": "Kisumu",
-        "latitude": -0.0917,
-        "longitude": 34.7679,
-        "crime_type": "Homicide",
-        "count": 147
-    },
-    {
-        "county": "Nakuru",
-        "latitude": -0.3031,
-        "longitude": 36.08,
+        "county": "Kilifi",
+        "latitude": -3.5107,
+        "longitude": 39.9093,
         "crime_type": "Assault",
-        "count": 140
+        "count": 167
     },
     {
-        "county": "Nakuru",
-        "latitude": -0.3031,
-        "longitude": 36.08,
-        "crime_type": "Robbery",
-        "count": 390
+        "county": "Kilifi",
+        "latitude": -3.5107,
+        "longitude": 39.9093,
+        "crime_type": "Vandalism",
+        "count": 245
     },
     {
-        "county": "Nakuru",
-        "latitude": -0.3031,
-        "longitude": 36.08,
-        "crime_type": "Theft",
-        "count": 748
-    },
-    {
-        "county": "Nakuru",
-        "latitude": -0.3031,
-        "longitude": 36.08,
+        "county": "Bungoma",
+        "latitude": 0.5635,
+        "longitude": 34.5584,
         "crime_type": "Homicide",
-        "count": 290
+        "count": 98
+    },
+    {
+        "county": "Bungoma",
+        "latitude": 0.5635,
+        "longitude": 34.5584,
+        "crime_type": "Theft",
+        "count": 423
+    },
+    {
+        "county": "Bungoma",
+        "latitude": 0.5635,
+        "longitude": 34.5584,
+        "crime_type": "Assault",
+        "count": 156
+    },
+    {
+        "county": "Bungoma",
+        "latitude": 0.5635,
+        "longitude": 34.5584,
+        "crime_type": "Vandalism",
+        "count": 234
+    },
+    {
+        "county": "Murang'a",
+        "latitude": -0.7571,
+        "longitude": 37.1532,
+        "crime_type": "Homicide",
+        "count": 76
+    },
+    {
+        "county": "Murang'a",
+        "latitude": -0.7571,
+        "longitude": 37.1532,
+        "crime_type": "Theft",
+        "count": 345
+    },
+    {
+        "county": "Murang'a",
+        "latitude": -0.7571,
+        "longitude": 37.1532,
+        "crime_type": "Assault",
+        "count": 134
+    },
+    {
+        "county": "Murang'a",
+        "latitude": -0.7571,
+        "longitude": 37.1532,
+        "crime_type": "Vandalism",
+        "count": 189
+    },
+    {
+        "county": "Kirinyaga",
+        "latitude": -0.4988,
+        "longitude": 37.2898,
+        "crime_type": "Homicide",
+        "count": 65
+    },
+    {
+        "county": "Kirinyaga",
+        "latitude": -0.4988,
+        "longitude": 37.2898,
+        "crime_type": "Theft",
+        "count": 312
+    },
+    {
+        "county": "Kirinyaga",
+        "latitude": -0.4988,
+        "longitude": 37.2898,
+        "crime_type": "Assault",
+        "count": 123
+    },
+    {
+        "county": "Kirinyaga",
+        "latitude": -0.4988,
+        "longitude": 37.2898,
+        "crime_type": "Vandalism",
+        "count": 167
+    },
+    {
+        "county": "Kitui",
+        "latitude": -1.3683,
+        "longitude": 38.3106,
+        "crime_type": "Homicide",
+        "count": 87
+    },
+    {
+        "county": "Kitui",
+        "latitude": -1.3683,
+        "longitude": 38.3106,
+        "crime_type": "Theft",
+        "count": 356
+    },
+    {
+        "county": "Kitui",
+        "latitude": -1.3683,
+        "longitude": 38.3106,
+        "crime_type": "Assault",
+        "count": 145
+    },
+    {
+        "county": "Kitui",
+        "latitude": -1.3683,
+        "longitude": 38.3106,
+        "crime_type": "Vandalism",
+        "count": 198
+    },
+    {
+        "county": "Makueni",
+        "latitude": -1.8044,
+        "longitude": 37.6246,
+        "crime_type": "Homicide",
+        "count": 76
+    },
+    {
+        "county": "Makueni",
+        "latitude": -1.8044,
+        "longitude": 37.6246,
+        "crime_type": "Theft",
+        "count": 334
+    },
+    {
+        "county": "Makueni",
+        "latitude": -1.8044,
+        "longitude": 37.6246,
+        "crime_type": "Assault",
+        "count": 134
+    },
+    {
+        "county": "Makueni",
+        "latitude": -1.8044,
+        "longitude": 37.6246,
+        "crime_type": "Vandalism",
+        "count": 178
+    },
+    {
+        "county": "Nyandarua",
+        "latitude": -0.1821,
+        "longitude": 36.3673,
+        "crime_type": "Homicide",
+        "count": 54
+    },
+    {
+        "county": "Nyandarua",
+        "latitude": -0.1821,
+        "longitude": 36.3673,
+        "crime_type": "Theft",
+        "count": 289
+    },
+    {
+        "county": "Nyandarua",
+        "latitude": -0.1821,
+        "longitude": 36.3673,
+        "crime_type": "Assault",
+        "count": 112
+    },
+    {
+        "county": "Nyandarua",
+        "latitude": -0.1821,
+        "longitude": 36.3673,
+        "crime_type": "Vandalism",
+        "count": 156
+    },
+    {
+        "county": "Nyamira",
+        "latitude": -0.5634,
+        "longitude": 34.9357,
+        "crime_type": "Homicide",
+        "count": 65
+    },
+    {
+        "county": "Nyamira",
+        "latitude": -0.5634,
+        "longitude": 34.9357,
+        "crime_type": "Theft",
+        "count": 298
+    },
+    {
+        "county": "Nyamira",
+        "latitude": -0.5634,
+        "longitude": 34.9357,
+        "crime_type": "Assault",
+        "count": 123
+    },
+    {
+        "county": "Nyamira",
+        "latitude": -0.5634,
+        "longitude": 34.9357,
+        "crime_type": "Vandalism",
+        "count": 167
+    },
+    {
+        "county": "Siaya",
+        "latitude": 0.0623,
+        "longitude": 34.2429,
+        "crime_type": "Homicide",
+        "count": 76
+    },
+    {
+        "county": "Siaya",
+        "latitude": 0.0623,
+        "longitude": 34.2429,
+        "crime_type": "Theft",
+        "count": 334
+    },
+    {
+        "county": "Siaya",
+        "latitude": 0.0623,
+        "longitude": 34.2429,
+        "crime_type": "Assault",
+        "count": 134
+    },
+    {
+        "county": "Siaya",
+        "latitude": 0.0623,
+        "longitude": 34.2429,
+        "crime_type": "Vandalism",
+        "count": 189
+    },
+    {
+        "county": "Turkana",
+        "latitude": 3.1166,
+        "longitude": 35.5966,
+        "crime_type": "Homicide",
+        "count": 87
+    },
+    {
+        "county": "Turkana",
+        "latitude": 3.1166,
+        "longitude": 35.5966,
+        "crime_type": "Theft",
+        "count": 367
+    },
+    {
+        "county": "Turkana",
+        "latitude": 3.1166,
+        "longitude": 35.5966,
+        "crime_type": "Assault",
+        "count": 145
+    },
+    {
+        "county": "Turkana",
+        "latitude": 3.1166,
+        "longitude": 35.5966,
+        "crime_type": "Vandalism",
+        "count": 198
+    },
+    {
+        "county": "West Pokot",
+        "latitude": 1.7363,
+        "longitude": 35.2962,
+        "crime_type": "Homicide",
+        "count": 65
+    },
+    {
+        "county": "West Pokot",
+        "latitude": 1.7363,
+        "longitude": 35.2962,
+        "crime_type": "Theft",
+        "count": 289
+    },
+    {
+        "county": "West Pokot",
+        "latitude": 1.7363,
+        "longitude": 35.2962,
+        "crime_type": "Assault",
+        "count": 123
+    },
+    {
+        "county": "West Pokot",
+        "latitude": 1.7363,
+        "longitude": 35.2962,
+        "crime_type": "Vandalism",
+        "count": 167
+    },
+    {
+        "county": "Samburu",
+        "latitude": 1.2167,
+        "longitude": 36.9500,
+        "crime_type": "Homicide",
+        "count": 54
+    },
+    {
+        "county": "Samburu",
+        "latitude": 1.2167,
+        "longitude": 36.9500,
+        "crime_type": "Theft",
+        "count": 245
+    },
+    {
+        "county": "Samburu",
+        "latitude": 1.2167,
+        "longitude": 36.9500,
+        "crime_type": "Assault",
+        "count": 98
+    },
+    {
+        "county": "Samburu",
+        "latitude": 1.2167,
+        "longitude": 36.9500,
+        "crime_type": "Vandalism",
+        "count": 134
+    },
+    {
+        "county": "Trans Nzoia",
+        "latitude": 1.0557,
+        "longitude": 34.9500,
+        "crime_type": "Homicide",
+        "count": 76
+    },
+    {
+        "county": "Trans Nzoia",
+        "latitude": 1.0557,
+        "longitude": 34.9500,
+        "crime_type": "Theft",
+        "count": 345
+    },
+    {
+        "county": "Trans Nzoia",
+        "latitude": 1.0557,
+        "longitude": 34.9500,
+        "crime_type": "Assault",
+        "count": 134
+    },
+    {
+        "county": "Trans Nzoia",
+        "latitude": 1.0557,
+        "longitude": 34.9500,
+        "crime_type": "Vandalism",
+        "count": 189
+    },
+    {
+        "county": "Bomet",
+        "latitude": -0.7868,
+        "longitude": 35.3416,
+        "crime_type": "Homicide",
+        "count": 65
+    },
+    {
+        "county": "Bomet",
+        "latitude": -0.7868,
+        "longitude": 35.3416,
+        "crime_type": "Theft",
+        "count": 298
+    },
+    {
+        "county": "Bomet",
+        "latitude": -0.7868,
+        "longitude": 35.3416,
+        "crime_type": "Assault",
+        "count": 123
+    },
+    {
+        "county": "Bomet",
+        "latitude": -0.7868,
+        "longitude": 35.3416,
+        "crime_type": "Vandalism",
+        "count": 167
+    },
+    {
+        "county": "Kericho",
+        "latitude": -0.3677,
+        "longitude": 35.2862,
+        "crime_type": "Homicide",
+        "count": 87
+    },
+    {
+        "county": "Kericho",
+        "latitude": -0.3677,
+        "longitude": 35.2862,
+        "crime_type": "Theft",
+        "count": 378
+    },
+    {
+        "county": "Kericho",
+        "latitude": -0.3677,
+        "longitude": 35.2862,
+        "crime_type": "Assault",
+        "count": 145
+    },
+    {
+        "county": "Kericho",
+        "latitude": -0.3677,
+        "longitude": 35.2862,
+        "crime_type": "Vandalism",
+        "count": 198
+    },
+    {
+        "county": "Kajiado",
+        "latitude": -2.0981,
+        "longitude": 36.7820,
+        "crime_type": "Homicide",
+        "count": 98
+    },
+    {
+        "county": "Kajiado",
+        "latitude": -2.0981,
+        "longitude": 36.7820,
+        "crime_type": "Theft",
+        "count": 423
+    },
+    {
+        "county": "Kajiado",
+        "latitude": -2.0981,
+        "longitude": 36.7820,
+        "crime_type": "Assault",
+        "count": 156
+    },
+    {
+        "county": "Kajiado",
+        "latitude": -2.0981,
+        "longitude": 36.7820,
+        "crime_type": "Vandalism",
+        "count": 234
+    },
+    {
+        "county": "Vihiga",
+        "latitude": 0.0768,
+        "longitude": 34.7220,
+        "crime_type": "Homicide",
+        "count": 65
+    },
+    {
+        "county": "Vihiga",
+        "latitude": 0.0768,
+        "longitude": 34.7220,
+        "crime_type": "Theft",
+        "count": 289
+    },
+    {
+        "county": "Vihiga",
+        "latitude": 0.0768,
+        "longitude": 34.7220,
+        "crime_type": "Assault",
+        "count": 123
+    },
+    {
+        "county": "Vihiga",
+        "latitude": 0.0768,
+        "longitude": 34.7220,
+        "crime_type": "Vandalism",
+        "count": 167
+    },
+    {
+        "county": "Nandi",
+        "latitude": 0.1832,
+        "longitude": 35.1747,
+        "crime_type": "Homicide",
+        "count": 76
+    },
+    {
+        "county": "Nandi",
+        "latitude": 0.1832,
+        "longitude": 35.1747,
+        "crime_type": "Theft",
+        "count": 334
+    },
+    {
+        "county": "Nandi",
+        "latitude": 0.1832,
+        "longitude": 35.1747,
+        "crime_type": "Assault",
+        "count": 134
+    },
+    {
+        "county": "Nandi",
+        "latitude": 0.1832,
+        "longitude": 35.1747,
+        "crime_type": "Vandalism",
+        "count": 189
+    },
+    {
+        "county": "Baringo",
+        "latitude": 0.4919,
+        "longitude": 35.7432,
+        "crime_type": "Homicide",
+        "count": 65
+    },
+    {
+        "county": "Baringo",
+        "latitude": 0.4919,
+        "longitude": 35.7432,
+        "crime_type": "Theft",
+        "count": 298
+    },
+    {
+        "county": "Baringo",
+        "latitude": 0.4919,
+        "longitude": 35.7432,
+        "crime_type": "Assault",
+        "count": 123
+    },
+    {
+        "county": "Baringo",
+        "latitude": 0.4919,
+        "longitude": 35.7432,
+        "crime_type": "Vandalism",
+        "count": 167
+    },
+    {
+        "county": "Laikipia",
+        "latitude": 0.3666,
+        "longitude": 36.7833,
+        "crime_type": "Homicide",
+        "count": 76
+    },
+    {
+        "county": "Laikipia",
+        "latitude": 0.3666,
+        "longitude": 36.7833,
+        "crime_type": "Theft",
+        "count": 345
+    },
+    {
+        "county": "Laikipia",
+        "latitude": 0.3666,
+        "longitude": 36.7833,
+        "crime_type": "Assault",
+        "count": 134
+    },
+    {
+        "county": "Laikipia",
+        "latitude": 0.3666,
+        "longitude": 36.7833,
+        "crime_type": "Vandalism",
+        "count": 189
+    },
+    {
+        "county": "Narok",
+        "latitude": -1.0921,
+        "longitude": 35.8668,
+        "crime_type": "Homicide",
+        "count": 87
+    },
+    {
+        "county": "Narok",
+        "latitude": -1.0921,
+        "longitude": 35.8668,
+        "crime_type": "Theft",
+        "count": 378
+    },
+    {
+        "county": "Narok",
+        "latitude": -1.0921,
+        "longitude": 35.8668,
+        "crime_type": "Assault",
+        "count": 145
+    },
+    {
+        "county": "Narok",
+        "latitude": -1.0921,
+        "longitude": 35.8668,
+        "crime_type": "Vandalism",
+        "count": 198
+    },
+    {
+        "county": "Marsabit",
+        "latitude": 2.3284,
+        "longitude": 37.9991,
+        "crime_type": "Homicide",
+        "count": 76
+    },
+    {
+        "county": "Marsabit",
+        "latitude": 2.3284,
+        "longitude": 37.9991,
+        "crime_type": "Theft",
+        "count": 312
+    },
+    {
+        "county": "Marsabit",
+        "latitude": 2.3284,
+        "longitude": 37.9991,
+        "crime_type": "Assault",
+        "count": 134
+    },
+    {
+        "county": "Marsabit",
+        "latitude": 2.3284,
+        "longitude": 37.9991,
+        "crime_type": "Vandalism",
+        "count": 167
+    },
+    {
+        "county": "Isiolo",
+        "latitude": 0.3524,
+        "longitude": 37.5822,
+        "crime_type": "Homicide",
+        "count": 65
+    },
+    {
+        "county": "Isiolo",
+        "latitude": 0.3524,
+        "longitude": 37.5822,
+        "crime_type": "Theft",
+        "count": 289
+    },
+    {
+        "county": "Isiolo",
+        "latitude": 0.3524,
+        "longitude": 37.5822,
+        "crime_type": "Assault",
+        "count": 123
+    },
+    {
+        "county": "Isiolo",
+        "latitude": 0.3524,
+        "longitude": 37.5822,
+        "crime_type": "Vandalism",
+        "count": 156
+    },
+    {
+        "county": "Meru",
+        "latitude": 0.0465,
+        "longitude": 37.6563,
+        "crime_type": "Homicide",
+        "count": 98
+    },
+    {
+        "county": "Meru",
+        "latitude": 0.0465,
+        "longitude": 37.6563,
+        "crime_type": "Theft",
+        "count": 423
+    },
+    {
+        "county": "Meru",
+        "latitude": 0.0465,
+        "longitude": 37.6563,
+        "crime_type": "Assault",
+        "count": 156
+    },
+    {
+        "county": "Meru",
+        "latitude": 0.0465,
+        "longitude": 37.6563,
+        "crime_type": "Vandalism",
+        "count": 234
+    },
+    {
+        "county": "Tharaka-Nithi",
+        "latitude": -0.3073,
+        "longitude": 37.8892,
+        "crime_type": "Homicide",
+        "count": 54
+    },
+    {
+        "county": "Tharaka-Nithi",
+        "latitude": -0.3073,
+        "longitude": 37.8892,
+        "crime_type": "Theft",
+        "count": 267
+    },
+    {
+        "county": "Tharaka-Nithi",
+        "latitude": -0.3073,
+        "longitude": 37.8892,
+        "crime_type": "Assault",
+        "count": 112
+    },
+    {
+        "county": "Tharaka-Nithi",
+        "latitude": -0.3073,
+        "longitude": 37.8892,
+        "crime_type": "Vandalism",
+        "count": 145
+    },
+    {
+        "county": "Embu",
+        "latitude": -0.5389,
+        "longitude": 37.4597,
+        "crime_type": "Homicide",
+        "count": 76
+    },
+    {
+        "county": "Embu",
+        "latitude": -0.5389,
+        "longitude": 37.4597,
+        "crime_type": "Theft",
+        "count": 334
+    },
+    {
+        "county": "Embu",
+        "latitude": -0.5389,
+        "longitude": 37.4597,
+        "crime_type": "Assault",
+        "count": 134
+    },
+    {
+        "county": "Embu",
+        "latitude": -0.5389,
+        "longitude": 37.4597,
+        "crime_type": "Vandalism",
+        "count": 189
+    },
+    {
+        "county": "Garissa",
+        "latitude": -0.4569,
+        "longitude": 39.6583,
+        "crime_type": "Homicide",
+        "count": 87
+    },
+    {
+        "county": "Garissa",
+        "latitude": -0.4569,
+        "longitude": 39.6583,
+        "crime_type": "Theft",
+        "count": 356
+    },
+    {
+        "county": "Garissa",
+        "latitude": -0.4569,
+        "longitude": 39.6583,
+        "crime_type": "Assault",
+        "count": 145
+    },
+    {
+        "county": "Garissa",
+        "latitude": -0.4569,
+        "longitude": 39.6583,
+        "crime_type": "Vandalism",
+        "count": 198
+    },
+    {
+        "county": "Wajir",
+        "latitude": 1.7471,
+        "longitude": 40.0573,
+        "crime_type": "Homicide",
+        "count": 65
+    },
+    {
+        "county": "Wajir",
+        "latitude": 1.7471,
+        "longitude": 40.0573,
+        "crime_type": "Theft",
+        "count": 289
+    },
+    {
+        "county": "Wajir",
+        "latitude": 1.7471,
+        "longitude": 40.0573,
+        "crime_type": "Assault",
+        "count": 123
+    },
+    {
+        "county": "Wajir",
+        "latitude": 1.7471,
+        "longitude": 40.0573,
+        "crime_type": "Vandalism",
+        "count": 167
+    },
+    {
+        "county": "Mandera",
+        "latitude": 3.9366,
+        "longitude": 41.8569,
+        "crime_type": "Homicide",
+        "count": 76
+    },
+    {
+        "county": "Mandera",
+        "latitude": 3.9366,
+        "longitude": 41.8569,
+        "crime_type": "Theft",
+        "count": 312
+    },
+    {
+        "county": "Mandera",
+        "latitude": 3.9366,
+        "longitude": 41.8569,
+        "crime_type": "Assault",
+        "count": 134
+    },
+    {
+        "county": "Mandera",
+        "latitude": 3.9366,
+        "longitude": 41.8569,
+        "crime_type": "Vandalism",
+        "count": 178
+    },
+    {
+        "county": "Taita Taveta",
+        "latitude": -3.3166,
+        "longitude": 38.4833,
+        "crime_type": "Homicide",
+        "count": 54
+    },
+    {
+        "county": "Taita Taveta",
+        "latitude": -3.3166,
+        "longitude": 38.4833,
+        "crime_type": "Theft",
+        "count": 267
+    },
+    {
+        "county": "Taita Taveta",
+        "latitude": -3.3166,
+        "longitude": 38.4833,
+        "crime_type": "Assault",
+        "count": 112
+    },
+    {
+        "county": "Taita Taveta",
+        "latitude": -3.3166,
+        "longitude": 38.4833,
+        "crime_type": "Vandalism",
+        "count": 145
+    },
+    {
+        "county": "Lamu",
+        "latitude": -2.2696,
+        "longitude": 40.9006,
+        "crime_type": "Homicide",
+        "count": 43
+    },
+    {
+        "county": "Lamu",
+        "latitude": -2.2696,
+        "longitude": 40.9006,
+        "crime_type": "Theft",
+        "count": 234
+    },
+    {
+        "county": "Lamu",
+        "latitude": -2.2696,
+        "longitude": 40.9006,
+        "crime_type": "Assault",
+        "count": 98
+    },
+    {
+        "county": "Lamu",
+        "latitude": -2.2696,
+        "longitude": 40.9006,
+        "crime_type": "Vandalism",
+        "count": 134
+    },
+    {
+        "county": "Tana River",
+        "latitude": -1.6500,
+        "longitude": 39.4500,
+        "crime_type": "Homicide",
+        "count": 54
+    },
+    {
+        "county": "Tana River",
+        "latitude": -1.6500,
+        "longitude": 39.4500,
+        "crime_type": "Theft",
+        "count": 267
+    },
+    {
+        "county": "Tana River",
+        "latitude": -1.6500,
+        "longitude": 39.4500,
+        "crime_type": "Assault",
+        "count": 112
+    },
+    {
+        "county": "Tana River",
+        "latitude": -1.6500,
+        "longitude": 39.4500,
+        "crime_type": "Vandalism",
+        "count": 145
     }
 ]

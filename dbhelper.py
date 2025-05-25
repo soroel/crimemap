@@ -104,11 +104,11 @@ class DBHelper:
             self.logger.error(f"Error fetching user {username}: {e}")
             return None
 
-    def get_reports_by_user(self, username):
-        """Fetch reports with complete error handling and validation."""
+    def get_reports_by_user(self, username, page=1, per_page=10):
+        """Fetch paginated reports with complete error handling and validation."""
         if not username or not isinstance(username, str):
             self.logger.error(f"Invalid username format: {type(username)}")
-            return []
+            return {"reports": [], "total_pages": 0, "total_reports": 0}
 
         try:
             with self.connect() as connection:
@@ -120,9 +120,18 @@ class DBHelper:
                     )
                     if not cursor.fetchone():
                         self.logger.warning(f"User {username} not found")
-                        return []
+                        return {"reports": [], "total_pages": 0, "total_reports": 0}
 
-                    # Get reports with proper field selection
+                    # Get total count first
+                    count_query = "SELECT COUNT(*) as total FROM crimes WHERE BINARY username = %s"
+                    cursor.execute(count_query, (username,))
+                    total_reports = cursor.fetchone()["total"]
+                    total_pages = (total_reports + per_page - 1) // per_page
+
+                    # Calculate offset
+                    offset = (page - 1) * per_page
+
+                    # Get paginated reports with proper field selection
                     query = """
                     SELECT 
                         id, 
@@ -136,8 +145,9 @@ class DBHelper:
                     FROM crimes 
                     WHERE BINARY username = %s
                     ORDER BY date DESC
+                    LIMIT %s OFFSET %s
                     """
-                    cursor.execute(query, (username,))
+                    cursor.execute(query, (username, per_page, offset))
                     reports = cursor.fetchall()
 
                     # Validate and clean data
@@ -151,16 +161,20 @@ class DBHelper:
                             self.logger.error(f"Invalid report data: {e} - {report}")
 
                     self.logger.info(
-                        f"Retrieved {len(valid_reports)} reports for {username}"
+                        f"Retrieved {len(valid_reports)} reports for {username} (page {page}/{total_pages})"
                     )
-                    return valid_reports
+                    return {
+                        "reports": valid_reports,
+                        "total_pages": total_pages,
+                        "total_reports": total_reports
+                    }
 
         except pymysql.MySQLError as e:
             self.logger.exception(f"Database error fetching reports for {username}")
-            return []
+            return {"reports": [], "total_pages": 0, "total_reports": 0}
         except Exception as e:
             self.logger.exception("Unexpected error in get_reports_by_user")
-            return []
+            return {"reports": [], "total_pages": 0, "total_reports": 0}
 
     def get_alerts_for_user(self, username: str) -> List[Dict]:
         """Fetch alerts for a specific user with complete debugging"""
@@ -758,4 +772,84 @@ class DBHelper:
             return False
         except Exception as e:
             self.logger.error(f"Unexpected error in update_last_login: {e}")
+            return False
+
+    def update_alert(self, alert_id: int, alert_data: Dict) -> bool:
+        """Update an existing alert in the database"""
+        try:
+            # Field mapping between API and database
+            field_mapping = {
+                "username": "username",
+                "type": "crime_category",
+                "title": "title",
+                "message": "description",
+                "severity": "severity",
+            }
+
+            # Build update query dynamically based on provided fields
+            update_fields = []
+            values = []
+            for api_field, db_field in field_mapping.items():
+                if api_field in alert_data and alert_data[api_field] is not None:
+                    update_fields.append(f"{db_field} = %s")
+                    values.append(alert_data[api_field])
+
+            if not update_fields:
+                self.logger.warning("No fields to update for alert")
+                return False
+
+            # Add alert_id to values
+            values.append(alert_id)
+
+            with self.connect() as connection:
+                with connection.cursor() as cursor:
+                    # First check if alert exists
+                    cursor.execute("SELECT 1 FROM alerts WHERE id = %s", (alert_id,))
+                    if not cursor.fetchone():
+                        self.logger.warning(f"No alert found with ID {alert_id}")
+                        return False
+
+                    # Perform update
+                    query = f"""
+                    UPDATE alerts 
+                    SET {', '.join(update_fields)}
+                    WHERE id = %s
+                    """
+                    cursor.execute(query, tuple(values))
+                    connection.commit()
+                    
+                    if cursor.rowcount == 0:
+                        self.logger.warning(f"No changes made to alert {alert_id}")
+                        return False
+                        
+                    self.logger.info(f"Alert {alert_id} updated successfully")
+                    return True
+
+        except pymysql.MySQLError as e:
+            self.logger.error(f"Database error updating alert: {str(e)}")
+            return False
+        except Exception as e:
+            self.logger.error(f"Unexpected error in update_alert: {str(e)}")
+            return False
+
+    def delete_alert(self, alert_id: int) -> bool:
+        """Delete an alert from the database"""
+        try:
+            with self.connect() as connection:
+                with connection.cursor() as cursor:
+                    query = "DELETE FROM alerts WHERE id = %s"
+                    cursor.execute(query, (alert_id,))
+                    
+                    if cursor.rowcount == 0:
+                        self.logger.warning(f"No alert found with ID {alert_id}")
+                        return False
+                        
+                    self.logger.info(f"Alert {alert_id} deleted successfully")
+                    return True
+
+        except pymysql.MySQLError as e:
+            self.logger.error(f"Database error deleting alert: {str(e)}")
+            return False
+        except Exception as e:
+            self.logger.error(f"Unexpected error in delete_alert: {str(e)}")
             return False

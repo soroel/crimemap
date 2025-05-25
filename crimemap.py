@@ -574,7 +574,7 @@ def get_alerts():
 @app.route("/api/user/reports", methods=["GET"])
 @jwt_required()
 def get_user_reports():
-    """Get crime reports submitted by the current user."""
+    """Get paginated crime reports submitted by the current user."""
     try:
         # Get authenticated user's identity
         username = get_jwt_identity()
@@ -584,17 +584,27 @@ def get_user_reports():
             logger.error("No username found in JWT token")
             return jsonify({"error": "User not authenticated"}), 401
 
-        # Fetch reports from database
-        reports = DB.get_reports_by_user(username)
-        logger.debug(f"🔍 Reports retrieved from DB for {username}: {reports}")
+        # Get pagination parameters
+        page = request.args.get('page', 1, type=int)
+        per_page = request.args.get('per_page', 5, type=int)
+
+        # Validate pagination parameters
+        if page < 1:
+            page = 1
+        if per_page < 1 or per_page > 50:
+            per_page = 5
+
+        # Fetch paginated reports from database
+        result = DB.get_reports_by_user(username, page, per_page)
+        logger.debug(f"🔍 Reports retrieved from DB for {username}: {result}")
 
         # Log successful retrieval
         logger.info(
-            f"Successfully retrieved {len(reports)} reports for user {username}"
+            f"Successfully retrieved {len(result['reports'])} reports for user {username} (page {page})"
         )
 
-        # Return reports (empty array if none found)
-        return jsonify(reports or []), 200
+        # Return paginated reports
+        return jsonify(result), 200
 
     except Exception as e:
         # Log the full error with stack trace
@@ -830,6 +840,96 @@ def get_crime_stats():
         logger.error(f"Error reading or processing file: {e}")
         return jsonify({"error": "Failed to load crime stats"}), 500
 
+
+@app.route("/api/admin/alerts/<int:alert_id>", methods=["PUT"])
+@jwt_required()
+def update_alert(alert_id):
+    """Update an existing alert (admin only)."""
+    try:
+        # Verify admin role
+        claims = get_jwt()
+        if claims.get("role") != "admin":
+            return jsonify({"error": "Admin privileges required"}), 403
+
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "No data provided"}), 400
+
+        # Update alert with mapped fields
+        alert_data = {
+            "username": data.get("username"),
+            "type": data.get("type"),
+            "title": data.get("title"),
+            "message": data.get("message"),
+            "severity": data.get("severity"),
+        }
+
+        if DB.update_alert(alert_id, alert_data):
+            logger.info(f"Alert {alert_id} updated successfully")
+            return jsonify({"success": True, "message": "Alert updated successfully"}), 200
+        else:
+            logger.error(f"Failed to update alert {alert_id}")
+            return jsonify({"error": "Failed to update alert"}), 500
+
+    except Exception as e:
+        logger.error(f"Alert update error: {str(e)}")
+        return jsonify({"error": "Internal server error"}), 500
+
+
+@app.route("/api/admin/alerts/<int:alert_id>", methods=["DELETE"])
+@jwt_required()
+def delete_alert(alert_id):
+    """Delete an alert (admin only)."""
+    try:
+        # Verify admin role
+        claims = get_jwt()
+        if claims.get("role") != "admin":
+            return jsonify({"error": "Admin privileges required"}), 403
+
+        if DB.delete_alert(alert_id):
+            logger.info(f"Alert {alert_id} deleted successfully")
+            return jsonify({"success": True, "message": "Alert deleted successfully"}), 200
+        else:
+            logger.error(f"Failed to delete alert {alert_id}")
+            return jsonify({"error": "Failed to delete alert"}), 500
+
+    except Exception as e:
+        logger.error(f"Alert deletion error: {str(e)}")
+        return jsonify({"error": "Internal server error"}), 500
+
+
+@app.route("/api/user/profile", methods=["GET"])
+@jwt_required()
+def get_user_profile():
+    """Get user profile data."""
+    try:
+        username = get_jwt_identity()
+        profile = DB.get_user_profile(username)
+        return jsonify({"profile": profile}), 200
+    except Exception as e:
+        logger.error(f"User profile retrieval error: {str(e)}")
+        return jsonify({"error": "Failed to fetch user profile", "details": str(e)}), 500
+
+
+@app.route("/api/user/preferences", methods=["PUT"])
+@jwt_required()
+def update_user_preferences():
+    """Update user preferences."""
+    try:
+        username = get_jwt_identity()
+        # Get preferences from request
+        preferences = request.get_json()
+        
+        if DB.update_user_preferences(username, preferences):
+            logger.info(f"Preferences updated successfully for user {username}")
+            return jsonify({"success": True, "message": "Preferences updated successfully"}), 200
+        else:
+            logger.error(f"Failed to update preferences for user {username}")
+            return jsonify({"error": "Failed to update preferences"}), 500
+            
+    except Exception as e:
+        logger.error(f"Preferences update error: {str(e)}")
+        return jsonify({"error": "Internal server error"}), 500
 
 if __name__ == "__main__":
     logger.info("Starting Crime Reporting API")
