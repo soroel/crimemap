@@ -10,6 +10,25 @@ class MockDBHelper:
             'username': "testuser",
             'status': "pending"
         }]
+        self.users = {
+            "admin": {
+                "id": 1,
+                "username": "admin",
+                "password": "$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY.5AQGHXqOUiSm",  # "admin123"
+                "role": "admin"
+            },
+            "user": {
+                "id": 2,
+                "username": "user",
+                "password": "$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY.5AQGHXqOUiSm",  # "user123"
+                "role": "user"
+            }
+        }
+        self.alerts = []
+        self.crime_reports = []
+        self.next_user_id = 3
+        self.next_alert_id = 1
+        self.next_report_id = 1
         
     def connect(self, database="crimemap"):
         pass
@@ -91,14 +110,22 @@ class MockDBHelper:
         return []
         
     def create_user(self, username, hashed_password, role="user"):
+        """Create a new user in the mock database."""
+        if username in self.users:
+            return False
+            
+        self.users[username] = {
+            "id": self.next_user_id,
+            "username": username,
+            "password": hashed_password,
+            "role": role
+        }
+        self.next_user_id += 1
         return True
         
     def get_user(self, username):
-        if username == "admin":
-            return {"username": "admin", "password": "$2b$12$q7YRGlZRq2Qxvnr.SqS89O9JrEXKK90Y28b14Pd9fj4L64v.9EyvG", "role": "admin"}
-        elif username == "user":
-            return {"username": "user", "password": "$2b$12$q7YRGlZRq2Qxvnr.SqS89O9JrEXKK90Y28b14Pd9fj4L64v.9EyvG", "role": "user"}
-        return None
+        """Get user by username."""
+        return self.users.get(username)
         
     def get_all_users(self):
         return [

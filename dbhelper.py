@@ -88,7 +88,7 @@ class DBHelper:
             with self.connect() as connection:
                 with connection.cursor() as cursor:
                     query = """
-                    SELECT username, password, role 
+                    SELECT id, username, password, role 
                     FROM users 
                     WHERE BINARY username = %s
                     """

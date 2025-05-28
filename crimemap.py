@@ -43,7 +43,7 @@ app.config["JWT_REFRESH_TOKEN_EXPIRES"] = 60 * 60 * 24 * 30  # 30 days
 # Initialize extensions
 CORS(
     app,
-    resources={r"/api/*": {"origins": "http://localhost:3000"}},
+    resources={r"/api/*": {"origins": ["http://localhost:3000", "http://localhost:3001"]}},
     supports_credentials=True,
     allow_headers=["Content-Type", "Authorization"],
     methods=["GET", "POST", "PUT", "DELETE"],
